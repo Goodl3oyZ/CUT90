@@ -1,0 +1,615 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Cut 90 Planner API",
+    "description": "REST API for the Cut 90 Planner – a 90-day fat-loss planner and daily tracker PWA.\n\n## Authentication\nAll authenticated endpoints require a session cookie (`cut90_session`) set via the login or register endpoints. Mutating requests (POST/PUT/DELETE) also require a valid `Origin` header matching the server's allowed origins for CSRF protection.\n\n## Error Format\nAll errors follow: `{ \"error\": { \"code\": \"ERROR_CODE\", \"message\": \"Thai description\" } }`",
+    "version": "1.0.0",
+    "contact": {
+      "name": "Goodl3oyZ",
+      "url": "https://github.com/Goodl3oyZ/CUT90"
+    },
+    "license": {
+      "name": "MIT"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000",
+      "description": "Local development"
+    }
+  ],
+  "tags": [
+    { "name": "Health", "description": "Server health check" },
+    { "name": "Auth", "description": "Registration, login, logout, password change" },
+    { "name": "User", "description": "Current user info & account management" },
+    { "name": "Profile", "description": "User body profile (TDEE inputs)" },
+    { "name": "Daily Logs", "description": "Per-day weight & macro logging (days 1-90)" },
+    { "name": "Data", "description": "Bulk data export & import" }
+  ],
+  "components": {
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "object",
+            "properties": {
+              "code": { "type": "string", "example": "INVALID_INPUT" },
+              "message": { "type": "string", "example": "กรุณากรอกข้อมูลให้ถูกต้อง" }
+            },
+            "required": ["code", "message"]
+          }
+        }
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 1 },
+          "username": { "type": "string", "example": "demo" }
+        }
+      },
+      "RegisterRequest": {
+        "type": "object",
+        "required": ["username", "password"],
+        "properties": {
+          "username": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 32,
+            "pattern": "^[a-zA-Z0-9_]+$",
+            "example": "demo"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 128,
+            "example": "MySecurePass123!"
+          },
+          "inviteCode": {
+            "type": "string",
+            "description": "Optional invite code (required if INVITE_CODE env var is set)"
+          }
+        }
+      },
+      "LoginRequest": {
+        "type": "object",
+        "required": ["username", "password"],
+        "properties": {
+          "username": { "type": "string", "example": "demo" },
+          "password": { "type": "string", "example": "MySecurePass123!" }
+        }
+      },
+      "ChangePasswordRequest": {
+        "type": "object",
+        "required": ["currentPassword", "newPassword"],
+        "properties": {
+          "currentPassword": { "type": "string" },
+          "newPassword": { "type": "string", "minLength": 8, "maxLength": 128 }
+        }
+      },
+      "Profile": {
+        "type": "object",
+        "required": ["sex", "age", "heightCm", "startWeight", "goalWeight", "activity", "startDate"],
+        "properties": {
+          "sex": { "type": "string", "enum": ["male", "female"] },
+          "age": { "type": "integer", "minimum": 10, "maximum": 120, "example": 30 },
+          "heightCm": { "type": "number", "minimum": 100, "maximum": 250, "example": 175 },
+          "startWeight": { "type": "number", "minimum": 30, "maximum": 300, "example": 79.3 },
+          "goalWeight": { "type": "number", "minimum": 30, "maximum": 300, "example": 69.5 },
+          "activity": {
+            "type": "string",
+            "enum": ["sedentary", "lightly", "moderately", "very", "extremely"],
+            "example": "moderately"
+          },
+          "startDate": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+            "example": "2026-10-01"
+          },
+          "proteinGPerKg": { "type": "number", "minimum": 0.5, "maximum": 4.0, "default": 2.1 },
+          "fatGPerKg": { "type": "number", "minimum": 0.2, "maximum": 2.0, "default": 0.8 },
+          "recalDay": { "type": "integer", "minimum": 1, "maximum": 90, "nullable": true },
+          "recalWeight": { "type": "number", "minimum": 30, "maximum": 300, "nullable": true }
+        }
+      },
+      "DailyLog": {
+        "type": "object",
+        "properties": {
+          "day": { "type": "integer", "minimum": 1, "maximum": 90, "example": 1 },
+          "weightKg": { "type": "number", "minimum": 30, "maximum": 300, "nullable": true, "example": 79.3 },
+          "proteinG": { "type": "integer", "minimum": 0, "maximum": 2000, "nullable": true, "example": 167 },
+          "carbG": { "type": "integer", "minimum": 0, "maximum": 2000, "nullable": true, "example": 154 },
+          "fatG": { "type": "integer", "minimum": 0, "maximum": 2000, "nullable": true, "example": 63 },
+          "waistCm": { "type": "number", "minimum": 30, "maximum": 250, "nullable": true },
+          "updatedAt": { "type": "integer", "description": "Unix timestamp (ms)" }
+        }
+      },
+      "DailyLogInput": {
+        "type": "object",
+        "properties": {
+          "weightKg": { "type": "number", "minimum": 30, "maximum": 300, "nullable": true },
+          "proteinG": { "type": "integer", "minimum": 0, "maximum": 2000, "nullable": true },
+          "carbG": { "type": "integer", "minimum": 0, "maximum": 2000, "nullable": true },
+          "fatG": { "type": "integer", "minimum": 0, "maximum": 2000, "nullable": true },
+          "waistCm": { "type": "number", "minimum": 30, "maximum": 250, "nullable": true },
+          "updatedAt": { "type": "integer", "description": "Client timestamp (ms) for last-write-wins conflict resolution" }
+        }
+      },
+      "ImportRequest": {
+        "type": "object",
+        "required": ["profile", "logs"],
+        "properties": {
+          "profile": { "$ref": "#/components/schemas/Profile" },
+          "logs": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/DailyLog" }
+          }
+        }
+      },
+      "HealthResponse": {
+        "type": "object",
+        "properties": {
+          "status": { "type": "string", "enum": ["ok", "error"] },
+          "timestamp": { "type": "string", "format": "date-time" },
+          "database": { "type": "string", "enum": ["ok", "down"] }
+        }
+      }
+    },
+    "securitySchemes": {
+      "sessionCookie": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "cut90_session",
+        "description": "HttpOnly Lax session cookie set by /api/auth/login or /api/auth/register"
+      }
+    }
+  },
+  "paths": {
+    "/api/health": {
+      "get": {
+        "tags": ["Health"],
+        "summary": "Health check",
+        "description": "Returns server and database health status. No authentication required.",
+        "operationId": "healthCheck",
+        "responses": {
+          "200": {
+            "description": "Server is healthy",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HealthResponse" }
+              }
+            }
+          },
+          "500": {
+            "description": "Database is unreachable",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HealthResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/register": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Register a new user",
+        "description": "Creates a new user account and returns a session cookie. Rate limited to 10 attempts per IP per 15 minutes.",
+        "operationId": "register",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/RegisterRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Registration successful. Session cookie set.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "user": { "$ref": "#/components/schemas/User" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "Invalid input", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+          "403": { "description": "CSRF rejected or signup disabled", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+          "409": { "description": "Username already taken", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+          "429": { "description": "Rate limited", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Login",
+        "description": "Authenticates a user with username and password. Returns a session cookie. Rate limited: 5 failed attempts per username+IP per 15 minutes.",
+        "operationId": "login",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/LoginRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful. Session cookie set.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "user": { "$ref": "#/components/schemas/User" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "Invalid input", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+          "401": { "description": "Invalid credentials", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+          "403": { "description": "CSRF rejected", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+          "429": { "description": "Too many login attempts", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      }
+    },
+    "/api/auth/logout": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Logout",
+        "description": "Invalidates the current session and clears the session cookie.",
+        "operationId": "logout",
+        "security": [{ "sessionCookie": [] }],
+        "responses": {
+          "200": {
+            "description": "Logout successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": true }
+                  }
+                }
+              }
+            }
+          },
+          "403": { "description": "CSRF rejected", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      }
+    },
+    "/api/auth/change-password": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Change password",
+        "description": "Changes the authenticated user's password and invalidates all other sessions.",
+        "operationId": "changePassword",
+        "security": [{ "sessionCookie": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ChangePasswordRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Password changed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "message": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "Invalid current password or input", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+          "401": { "description": "Not authenticated", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+          "403": { "description": "CSRF rejected", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      }
+    },
+    "/api/me": {
+      "get": {
+        "tags": ["User"],
+        "summary": "Current user info",
+        "description": "Returns the currently authenticated user, or `{ user: null }` if not logged in.",
+        "operationId": "getCurrentUser",
+        "responses": {
+          "200": {
+            "description": "Current user (or null)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "user": {
+                      "nullable": true,
+                      "allOf": [{ "$ref": "#/components/schemas/User" }]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/account": {
+      "delete": {
+        "tags": ["User"],
+        "summary": "Delete account",
+        "description": "Permanently deletes the authenticated user's account and all associated data (cascading foreign keys).",
+        "operationId": "deleteAccount",
+        "security": [{ "sessionCookie": [] }],
+        "responses": {
+          "200": {
+            "description": "Account deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "message": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "description": "Not authenticated", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+          "403": { "description": "CSRF rejected", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      }
+    },
+    "/api/profile": {
+      "get": {
+        "tags": ["Profile"],
+        "summary": "Get user profile",
+        "description": "Returns the authenticated user's body profile (TDEE calculation inputs), or `null` if not yet set up.",
+        "operationId": "getProfile",
+        "security": [{ "sessionCookie": [] }],
+        "responses": {
+          "200": {
+            "description": "Profile data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "profile": {
+                      "nullable": true,
+                      "allOf": [{ "$ref": "#/components/schemas/Profile" }]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "description": "Not authenticated", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      },
+      "put": {
+        "tags": ["Profile"],
+        "summary": "Create or update profile",
+        "description": "Creates or updates (upsert) the authenticated user's body profile.",
+        "operationId": "upsertProfile",
+        "security": [{ "sessionCookie": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/Profile" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Profile saved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "profile": { "$ref": "#/components/schemas/Profile" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "Validation error", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+          "401": { "description": "Not authenticated", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+          "403": { "description": "CSRF rejected", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      }
+    },
+    "/api/logs": {
+      "get": {
+        "tags": ["Daily Logs"],
+        "summary": "List all daily logs",
+        "description": "Returns all daily logs for the authenticated user, ordered by day ascending.",
+        "operationId": "listLogs",
+        "security": [{ "sessionCookie": [] }],
+        "responses": {
+          "200": {
+            "description": "Array of daily logs",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "logs": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/DailyLog" }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "description": "Not authenticated", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      }
+    },
+    "/api/logs/{day}": {
+      "put": {
+        "tags": ["Daily Logs"],
+        "summary": "Create or update a daily log",
+        "description": "Upserts a daily log for the given day number (1-90). Uses last-write-wins conflict resolution via `updatedAt` timestamp.",
+        "operationId": "upsertLog",
+        "security": [{ "sessionCookie": [] }],
+        "parameters": [
+          {
+            "name": "day",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer", "minimum": 1, "maximum": 90 },
+            "description": "Day number (1–90)"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/DailyLogInput" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Log saved (or skipped if server has newer data)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "log": { "$ref": "#/components/schemas/DailyLog" },
+                    "skipped": { "type": "boolean", "description": "True if server had newer data and this write was skipped" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "Invalid day or input", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+          "401": { "description": "Not authenticated", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+          "403": { "description": "CSRF rejected", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      },
+      "delete": {
+        "tags": ["Daily Logs"],
+        "summary": "Delete a daily log",
+        "description": "Deletes the daily log for the given day number.",
+        "operationId": "deleteLog",
+        "security": [{ "sessionCookie": [] }],
+        "parameters": [
+          {
+            "name": "day",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer", "minimum": 1, "maximum": 90 }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Log deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "Invalid day", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+          "401": { "description": "Not authenticated", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+          "403": { "description": "CSRF rejected", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      }
+    },
+    "/api/export": {
+      "get": {
+        "tags": ["Data"],
+        "summary": "Export all user data",
+        "description": "Exports the authenticated user's profile and all daily logs as JSON.",
+        "operationId": "exportData",
+        "security": [{ "sessionCookie": [] }],
+        "responses": {
+          "200": {
+            "description": "Exported data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "profile": {
+                      "nullable": true,
+                      "allOf": [{ "$ref": "#/components/schemas/Profile" }]
+                    },
+                    "logs": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/DailyLog" }
+                    },
+                    "exportedAt": { "type": "string", "format": "date-time" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "description": "Not authenticated", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      }
+    },
+    "/api/import": {
+      "post": {
+        "tags": ["Data"],
+        "summary": "Import user data",
+        "description": "Replaces the authenticated user's profile and daily logs with the provided data. **Destructive: existing data is deleted first.**",
+        "operationId": "importData",
+        "security": [{ "sessionCookie": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ImportRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Import successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "message": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "Invalid import data", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+          "401": { "description": "Not authenticated", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+          "403": { "description": "CSRF rejected", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      }
+    }
+  }
+}
