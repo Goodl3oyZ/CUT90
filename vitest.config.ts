@@ -11,5 +11,12 @@ export default defineConfig({
     environment: 'node',
     globals: true,
     include: ['src/tests/**/*.test.ts'],
+    // Serialize tests to prevent concurrent SQLite access (SQLITE_BUSY)
+    pool: 'forks',
+    poolOptions: {
+      forks: {
+        singleFork: true,
+      },
+    },
   },
 });

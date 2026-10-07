@@ -1,5 +1,6 @@
-import { describe, expect, it, beforeAll, beforeEach } from 'vitest';
+import { describe, expect, it, beforeAll, beforeEach, afterAll } from 'vitest';
 import { db } from '../../lib/db';
+import { sqliteClient } from '../../lib/db';
 import { runMigrations } from '../../lib/db/migrate';
 import { users, sessions, loginAttempts } from '../../lib/db/schema';
 import { hashPassword, createSession, verifyPassword, isLoginRateLimited, recordFailedLoginAttempt } from '../../lib/auth';
@@ -14,6 +15,14 @@ describe('Auth & Security API Integration Tests', () => {
     await db.delete(loginAttempts);
     await db.delete(sessions);
     await db.delete(users);
+  });
+
+  afterAll(async () => {
+    // Clean up and close database connection to prevent SQLITE_BUSY
+    await db.delete(loginAttempts);
+    await db.delete(sessions);
+    await db.delete(users);
+    sqliteClient.close();
   });
 
   it('hashes passwords using Argon2id and verifies successfully', async () => {

@@ -1,5 +1,5 @@
-import { describe, expect, it, beforeAll, beforeEach } from 'vitest';
-import { db } from '../../lib/db';
+import { describe, expect, it, beforeAll, beforeEach, afterAll } from 'vitest';
+import { db, sqliteClient } from '../../lib/db';
 import { runMigrations } from '../../lib/db/migrate';
 import { users, profiles, dailyLogs, sessions } from '../../lib/db/schema';
 import { eq, and } from 'drizzle-orm';
@@ -82,6 +82,14 @@ describe('Multi-Tenant User Data Isolation Tests', () => {
       fatG: 45,
       updatedAt: now,
     });
+  });
+
+  afterAll(async () => {
+    await db.delete(dailyLogs);
+    await db.delete(profiles);
+    await db.delete(sessions);
+    await db.delete(users);
+    sqliteClient.close();
   });
 
   it('proves User A query strictly returns User A profile and logs', async () => {

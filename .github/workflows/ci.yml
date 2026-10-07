@@ -34,7 +34,7 @@ jobs:
         run: npx tsc --noEmit
 
       - name: Run unit & API tests
-        run: npx vitest run --reporter=verbose
+        run: npx vitest run --reporter=verbose --pool=forks --poolOptions.forks.singleFork
         env:
           SESSION_SECRET: ci-test-secret-key-for-sessions-1234567890
           ALLOWED_ORIGINS: http://localhost:3000
