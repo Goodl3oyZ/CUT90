@@ -1,0 +1,32 @@
+# dependencies
+node_modules/
+
+# next.js build
+.next/
+out/
+
+# env files (keep .env.example)
+.env
+.env.local
+.env.production
+
+# database
+*.db
+*.db-shm
+*.db-wal
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# test results
+test-results/
+playwright-report/
+
+# misc
+*.tsbuildinfo
+next-env.d.ts

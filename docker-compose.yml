@@ -1,0 +1,43 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    environment:
+      - NODE_ENV=production
+      - SESSION_COOKIE_NAME=${SESSION_COOKIE_NAME:-cut90_session}
+      - ALLOW_SIGNUP=${ALLOW_SIGNUP:-true}
+      - INVITE_CODE=${INVITE_CODE}
+      - DATABASE_PATH=/data/app.db
+      - APP_ORIGIN=${APP_ORIGIN:-http://localhost}
+    volumes:
+      - cut90_data:/data
+    networks:
+      - cut90_net
+
+  caddy:
+    image: caddy:2-alpine
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - APP_DOMAIN=${APP_DOMAIN:-localhost}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - cut90_net
+    depends_on:
+      - app
+
+volumes:
+  cut90_data:
+  caddy_data:
+  caddy_config:
+
+networks:
+  cut90_net:
+    driver: bridge

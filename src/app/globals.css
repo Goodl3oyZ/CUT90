@@ -1,0 +1,61 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --bg-main: #f8fafc;
+    --bg-card: #ffffff;
+    --border-color: #e2e8f0;
+    --text-primary: #0f172a;
+    --text-secondary: #64748b;
+  }
+
+  .dark {
+    --bg-main: #0b1319;
+    --bg-card: #15202b;
+    --border-color: #1e2d3d;
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+  }
+
+  body {
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+    font-family: var(--font-dm-sans), var(--font-noto-sans-thai), sans-serif;
+    min-height: 100vh;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* Tabular numbers formatting for all metric displays */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Custom scrollbars for sticky table */
+.overflow-x-auto::-webkit-scrollbar {
+  height: 6px;
+}
+.overflow-x-auto::-webkit-scrollbar-track {
+  background: transparent;
+}
+.overflow-x-auto::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1;
+  border-radius: 3px;
+}
+.dark .overflow-x-auto::-webkit-scrollbar-thumb {
+  background-color: #334155;
+}
+
+/* Prevent text zoom on mobile inputs */
+input, select, textarea, button {
+  font-size: 16px !important;
+}
+
+@media (min-width: 640px) {
+  input, select, textarea, button {
+    font-size: 14px !important;
+  }
+}
