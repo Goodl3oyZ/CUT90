@@ -5,10 +5,13 @@ import { flushOfflineQueue } from '@/lib/offline/queue';
 import { WifiOff, CheckCircle2 } from 'lucide-react';
 
 export function OfflineIndicator() {
+  const [mounted, setMounted] = useState(false);
   const [isOffline, setIsOffline] = useState(false);
   const [syncedToast, setSyncedToast] = useState<string | null>(null);
 
   useEffect(() => {
+    setMounted(true);
+
     if (typeof window === 'undefined') return;
 
     setIsOffline(!navigator.onLine);
@@ -44,6 +47,8 @@ export function OfflineIndicator() {
       window.removeEventListener('offline', handleOffline);
     };
   }, []);
+
+  if (!mounted) return null;
 
   return (
     <>
