@@ -1,4 +1,10 @@
+'use client';
+
+import React from 'react';
 import clsx from 'clsx';
+import { Card } from '@/components/ui/Card';
+import { Icon } from '@/components/ui/Icon';
+import { ProgressBar } from '@/components/ui/ProgressBar';
 
 interface MacroBarsProps {
   targetKcal: number;
@@ -21,102 +27,110 @@ export function MacroBars({
 }: MacroBarsProps) {
   const actualKcal = 4 * actualProteinG + 4 * actualCarbG + 9 * actualFatG;
 
-  const kcalPercent = targetKcal > 0 ? (actualKcal / targetKcal) * 100 : 0;
-  const proteinPercent = targetProteinG > 0 ? (actualProteinG / targetProteinG) * 100 : 0;
-  const carbPercent = targetCarbG > 0 ? (actualCarbG / targetCarbG) * 100 : 0;
-  const fatPercent = targetFatG > 0 ? (actualFatG / targetFatG) * 100 : 0;
+  const getHint = (actual: number, target: number, unit: string) => {
+    const diff = target - actual;
+    if (diff > 0) return `เหลือ ${diff} ${unit}`;
+    if (diff < 0) return `เกิน ${Math.abs(diff)} ${unit}`;
+    return `พอดีเป้า`;
+  };
 
-  const isKcalOver = kcalPercent > 110;
-  const isProteinOver = proteinPercent > 110;
-  const isCarbOver = carbPercent > 110;
-  const isFatOver = fatPercent > 110;
+  const metrics = [
+    {
+      name: 'พลังงานรวม',
+      engName: 'Calories',
+      icon: 'Flame',
+      actual: actualKcal,
+      target: targetKcal,
+      unit: 'kcal',
+      color: 'brass' as const,
+      isOver: actualKcal > targetKcal * 1.1,
+    },
+    {
+      name: 'โปรตีน',
+      engName: 'Protein',
+      icon: 'Beef',
+      actual: actualProteinG,
+      target: targetProteinG,
+      unit: 'g',
+      color: 'protein' as const,
+      isOver: actualProteinG > targetProteinG * 1.1,
+    },
+    {
+      name: 'คาร์โบไฮเดรต',
+      engName: 'Carbohydrate',
+      icon: 'Wheat',
+      actual: actualCarbG,
+      target: targetCarbG,
+      unit: 'g',
+      color: 'carb' as const,
+      isOver: actualCarbG > targetCarbG * 1.1,
+    },
+    {
+      name: 'ไขมัน',
+      engName: 'Fat',
+      icon: 'Droplet',
+      actual: actualFatG,
+      target: targetFatG,
+      unit: 'g',
+      color: 'fat' as const,
+      isOver: actualFatG > targetFatG * 1.1,
+    },
+  ];
 
   return (
-    <div className="bg-white dark:bg-[#15202b] rounded-2xl p-4 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
-      {/* Total Calorie Bar */}
-      <div>
-        <div className="flex items-baseline justify-between mb-1.5">
-          <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-            พลังงาน (kcal)
-          </span>
-          <div className="font-brand font-bold text-lg tabular-nums">
-            <span className={clsx(isKcalOver ? 'text-amber-500 font-bold' : 'text-slate-900 dark:text-white')}>
-              {actualKcal}
-            </span>
-            <span className="text-slate-400 text-sm font-normal"> / {targetKcal} kcal</span>
-          </div>
-        </div>
-
-        <div className="h-3 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-          <div
-            className={clsx(
-              'h-full transition-all duration-300 rounded-full',
-              isKcalOver ? 'bg-amber-500' : 'bg-cobalt-600'
-            )}
-            style={{ width: `${Math.min(100, kcalPercent)}%` }}
-          />
-        </div>
+    <Card variant="default" padding="md" className="space-y-4">
+      <div className="flex items-center justify-between border-b border-[var(--border-color)] pb-3">
+        <h2 className="font-display font-bold text-base text-[var(--text-primary)] flex items-center gap-2">
+          <Icon name="Target" size={18} className="text-brass-400" />
+          <span>เป้าหมายโภชนาการวันนี้</span>
+        </h2>
+        <span className="text-xs text-[var(--text-muted)] font-mono">
+          เป้าวันนี้ vs ที่กินจริง
+        </span>
       </div>
 
-      {/* Macros Grid */}
-      <div className="grid grid-cols-3 gap-3 pt-2 border-t border-slate-100 dark:border-slate-800/80">
-        {/* Protein */}
-        <div>
-          <div className="flex items-center justify-between text-xs mb-1">
-            <span className="font-medium text-cobalt-600 dark:text-cobalt-400">โปรตีน</span>
-            <span className="tabular-nums font-mono text-slate-500 dark:text-slate-400 text-[11px]">
-              {actualProteinG}/{targetProteinG}g
-            </span>
-          </div>
-          <div className="h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-            <div
-              className={clsx(
-                'h-full transition-all duration-300 rounded-full',
-                isProteinOver ? 'bg-amber-500' : 'bg-cobalt-600'
-              )}
-              style={{ width: `${Math.min(100, proteinPercent)}%` }}
-            />
-          </div>
-        </div>
+      <div className="space-y-4">
+        {metrics.map((m) => {
+          const hint = getHint(m.actual, m.target, m.unit);
+          const percent = m.target > 0 ? (m.actual / m.target) * 100 : 0;
 
-        {/* Carb */}
-        <div>
-          <div className="flex items-center justify-between text-xs mb-1">
-            <span className="font-medium text-amber-600 dark:text-amber-400">คาร์บ</span>
-            <span className="tabular-nums font-mono text-slate-500 dark:text-slate-400 text-[11px]">
-              {actualCarbG}/{targetCarbG}g
-            </span>
-          </div>
-          <div className="h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-            <div
-              className={clsx(
-                'h-full transition-all duration-300 rounded-full',
-                isCarbOver ? 'bg-amber-500' : 'bg-amber-500'
-              )}
-              style={{ width: `${Math.min(100, carbPercent)}%` }}
-            />
-          </div>
-        </div>
+          return (
+            <div key={m.name} className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="p-1 rounded-lg bg-[var(--bg-surface-elevated)] border border-[var(--border-color)] text-brass-400">
+                    <Icon name={m.icon} size={15} />
+                  </div>
+                  <div>
+                    <span className="text-xs font-semibold text-[var(--text-primary)]">{m.name}</span>
+                    <span className="text-[10px] text-[var(--text-muted)] font-mono ml-1.5">
+                      ({m.engName})
+                    </span>
+                  </div>
+                </div>
 
-        {/* Fat */}
-        <div>
-          <div className="flex items-center justify-between text-xs mb-1">
-            <span className="font-medium text-rose-600 dark:text-rose-400">ไขมัน</span>
-            <span className="tabular-nums font-mono text-slate-500 dark:text-slate-400 text-[11px]">
-              {actualFatG}/{targetFatG}g
-            </span>
-          </div>
-          <div className="h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-            <div
-              className={clsx(
-                'h-full transition-all duration-300 rounded-full',
-                isFatOver ? 'bg-amber-500' : 'bg-rose-500'
-              )}
-              style={{ width: `${Math.min(100, fatPercent)}%` }}
-            />
-          </div>
-        </div>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-[11px] font-medium font-mono text-brass-500 dark:text-brass-300">
+                    {hint}
+                  </span>
+                  <div className="font-mono text-sm font-bold tabular-nums">
+                    <span className={clsx(m.isOver ? 'text-amber-500 font-bold' : 'text-[var(--text-primary)]')}>
+                      {m.actual}
+                    </span>
+                    <span className="text-xs text-[var(--text-muted)] font-normal"> / {m.target} {m.unit}</span>
+                  </div>
+                </div>
+              </div>
+
+              <ProgressBar
+                value={percent}
+                colorTheme={m.isOver ? 'warning' : m.color}
+                height="md"
+              />
+            </div>
+          );
+        })}
       </div>
-    </div>
+    </Card>
   );
 }

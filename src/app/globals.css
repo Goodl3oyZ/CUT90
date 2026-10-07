@@ -4,58 +4,118 @@
 
 @layer base {
   :root {
-    --bg-main: #f8fafc;
-    --bg-card: #ffffff;
-    --border-color: #e2e8f0;
-    --text-primary: #0f172a;
-    --text-secondary: #64748b;
+    --bg-main: #F7F6F2;
+    --bg-surface: #FFFFFF;
+    --bg-surface-hover: #F2F0E9;
+    --bg-surface-elevated: #EFECE6;
+    --border-color: rgba(18, 22, 20, 0.10);
+    --border-color-hover: rgba(18, 22, 20, 0.20);
+
+    --text-primary: #121614;
+    --text-secondary: #4D5C4A;
+    --text-muted: #788775;
+
+    --accent-color: #8C6D1F;
+    --accent-hover: #6E5414;
+    --accent-subtle: rgba(140, 109, 31, 0.10);
+
+    --color-good: #059669;
+    --color-warning: #D97706;
+    --color-critical: #DC2626;
+
+    --font-display: 'Bodoni Moda', 'Georgia', serif;
+    --font-sans: 'Plus Jakarta Sans', 'Noto Sans Thai', sans-serif;
+    --font-thai: 'Noto Sans Thai', 'Plus Jakarta Sans', sans-serif;
   }
 
   .dark {
-    --bg-main: #0b1319;
-    --bg-card: #15202b;
-    --border-color: #1e2d3d;
-    --text-primary: #f8fafc;
-    --text-secondary: #94a3b8;
+    --bg-main: #090C0B;
+    --bg-surface: #121715;
+    --bg-surface-hover: #19201D;
+    --bg-surface-elevated: #1D2521;
+    --border-color: rgba(255, 255, 255, 0.09);
+    --border-color-hover: rgba(255, 255, 255, 0.18);
+
+    --text-primary: #F4F3EF;
+    --text-secondary: #8E9C8A;
+    --text-muted: #637260;
+
+    --accent-color: #D4AF37;
+    --accent-hover: #E5C158;
+    --accent-subtle: rgba(212, 175, 55, 0.12);
+
+    --color-good: #10B981;
+    --color-warning: #F59E0B;
+    --color-critical: #EF4444;
   }
 
   body {
     background-color: var(--bg-main);
     color: var(--text-primary);
-    font-family: var(--font-dm-sans), var(--font-noto-sans-thai), sans-serif;
+    font-family: var(--font-sans);
+    line-height: 1.65;
     min-height: 100vh;
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
+    transition: background-color 200ms ease, color 200ms ease;
   }
 }
 
-/* Tabular numbers formatting for all metric displays */
+/* Tabular numbers for precise alignment */
 .tabular-nums {
   font-variant-numeric: tabular-nums;
 }
 
-/* Custom scrollbars for sticky table */
-.overflow-x-auto::-webkit-scrollbar {
+/* Luxury card hairline highlight */
+.card-hairline {
+  border: 1px solid var(--border-color);
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.04);
+}
+
+/* Hero subtly textured background */
+.hero-gradient {
+  background: radial-gradient(circle at 50% 0%, rgba(212, 175, 55, 0.08) 0%, transparent 75%), var(--bg-surface);
+}
+
+.dark .hero-gradient {
+  background: radial-gradient(circle at 50% 0%, rgba(212, 175, 55, 0.07) 0%, transparent 80%), var(--bg-surface);
+}
+
+/* Accessible focus ring in brass accent */
+:focus-visible {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 2px;
+}
+
+/* Custom subtle scrollbars */
+.overflow-x-auto::-webkit-scrollbar,
+.overflow-y-auto::-webkit-scrollbar {
+  width: 6px;
   height: 6px;
 }
-.overflow-x-auto::-webkit-scrollbar-track {
+.overflow-x-auto::-webkit-scrollbar-track,
+.overflow-y-auto::-webkit-scrollbar-track {
   background: transparent;
 }
-.overflow-x-auto::-webkit-scrollbar-thumb {
-  background-color: #cbd5e1;
-  border-radius: 3px;
-}
-.dark .overflow-x-auto::-webkit-scrollbar-thumb {
-  background-color: #334155;
+.overflow-x-auto::-webkit-scrollbar-thumb,
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background-color: rgba(140, 109, 31, 0.25);
+  border-radius: 999px;
 }
 
-/* Prevent text zoom on mobile inputs */
-input, select, textarea, button {
-  font-size: 16px !important;
+/* Prevent layout shift during font swaps */
+html {
+  font-size: 16px;
 }
 
-@media (min-width: 640px) {
-  input, select, textarea, button {
-    font-size: 14px !important;
+/* Respect user's motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

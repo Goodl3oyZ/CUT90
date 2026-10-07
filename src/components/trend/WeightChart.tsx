@@ -2,11 +2,15 @@
 
 import { useState } from 'react';
 import { DailyLogInput, PlanDay } from '@/lib/plan';
+import { Card } from '@/components/ui/Card';
+import { Icon } from '@/components/ui/Icon';
+import { Popover } from '@/components/ui/Popover';
 
 interface WeightChartProps {
   planDays: PlanDay[];
   logs: DailyLogInput[];
   goalWeightKg: number;
+  recalDay?: number | null;
   todayDayNumber?: number | null;
 }
 
@@ -14,6 +18,7 @@ export function WeightChart({
   planDays,
   logs,
   goalWeightKg,
+  recalDay,
   todayDayNumber,
 }: WeightChartProps) {
   const [selectedPoint, setSelectedPoint] = useState<{
@@ -29,22 +34,21 @@ export function WeightChart({
     }
   }
 
-  // Calculate 7-day moving average for logged weights
+  // Calculate 7-day moving average
   const movingAvgMap = new Map<number, number>();
   const sortedLoggedDays = Array.from(logMap.keys()).sort((a, b) => a - b);
 
   for (const day of sortedLoggedDays) {
     const window = sortedLoggedDays.filter((d) => d >= day - 6 && d <= day);
     const sum = window.reduce((acc, d) => acc + logMap.get(d)!, 0);
-    movingAvgMap.set(day, Math.round((sum / window.length) * 10) / 10);
+    movingAvgMap.set(day, Math.round((sum / window.length) * 100) / 100);
   }
 
   // SVG dimensions
-  const width = 340;
-  const height = 200;
-  const padding = { top: 20, right: 20, bottom: 30, left: 35 };
+  const width = 360;
+  const height = 210;
+  const padding = { top: 25, right: 25, bottom: 35, left: 40 };
 
-  // Calculate Y domain min/max
   const allWeights = [
     ...planDays.map((p) => p.expectedWeightKg),
     ...Array.from(logMap.values()),
@@ -74,28 +78,48 @@ export function WeightChart({
 
   const goalY = getY(goalWeightKg);
   const todayX = todayDayNumber ? getX(todayDayNumber) : null;
+  const recalX = recalDay ? getX(recalDay) : null;
 
   return (
-    <div className="bg-white dark:bg-[#15202b] rounded-2xl p-4 border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
-      <div className="flex items-center justify-between">
-        <h3 className="font-semibold text-sm text-slate-900 dark:text-white uppercase tracking-wider">
-          กราฟแนวโน้มน้ำหนัก (90 วัน)
-        </h3>
+    <Card variant="default" padding="md" className="space-y-4">
+      <div className="flex items-center justify-between border-b border-[var(--border-color)] pb-3">
+        <div className="flex items-center gap-2">
+          <h2 className="font-display font-bold text-base text-[var(--text-primary)] flex items-center gap-2">
+            <Icon name="LineChart" size={18} className="text-brass-400" />
+            <span>กราฟแนวโน้มน้ำหนัก (90 วัน)</span>
+          </h2>
+          <Popover
+            title="ค่าเฉลี่ย 7 วัน & เส้นแนวโน้ม"
+            description="เส้นสีทองแสดงค่าเฉลี่ยเคลื่อนที่ 7 วันเพื่อตัดสิ่งรบกวนจากน้ำหนักน้ำในร่างกาย ส่วนเส้นประแสดงเป้าหมายตามแผนผัง"
+            glossaryAnchor="7day-average"
+          />
+        </div>
+
         {selectedPoint && (
-          <div className="text-xs font-mono font-medium text-cobalt-600 dark:text-cobalt-400">
-            วัน {selectedPoint.day}: จริง {selectedPoint.weight}กก. (แผน {selectedPoint.expected}กก.)
+          <div className="text-xs font-mono font-semibold text-brass-400">
+            วัน {selectedPoint.day}: จริง {selectedPoint.weight.toFixed(1)} กก. (แผน {selectedPoint.expected.toFixed(1)} กก.)
           </div>
         )}
       </div>
 
       {/* SVG Responsive Container */}
-      <div className="w-full aspect-[17/10] relative">
+      <div className="w-full aspect-[16/9] relative">
         <svg
           viewBox={`0 0 ${width} ${height}`}
           className="w-full h-full overflow-visible"
           role="img"
           aria-label="กราฟแนวโน้มน้ำหนักประจำวันและค่าเฉลี่ย 7 วัน"
         >
+          {/* Goal Band Background Shadow */}
+          <rect
+            x={padding.left}
+            y={goalY - 6}
+            width={width - padding.left - padding.right}
+            height={12}
+            fill="currentColor"
+            className="text-emerald-500/10"
+          />
+
           {/* Y-axis Grid Lines */}
           {[minWeight, Math.round((minWeight + maxWeight) / 2), maxWeight].map((val) => {
             const y = getY(val);
@@ -107,14 +131,14 @@ export function WeightChart({
                   x2={width - padding.right}
                   y2={y}
                   stroke="currentColor"
-                  className="text-slate-200 dark:text-slate-800"
+                  className="text-[var(--border-color)]"
                   strokeDasharray="2 2"
                 />
                 <text
                   x={padding.left - 6}
                   y={y + 3}
                   textAnchor="end"
-                  className="fill-slate-400 text-[9px] font-mono"
+                  className="fill-[var(--text-muted)] text-[9px] font-mono"
                 >
                   {val}
                 </text>
@@ -122,7 +146,7 @@ export function WeightChart({
             );
           })}
 
-          {/* Goal Weight Line (Dashed Emerald) */}
+          {/* Goal Weight Line (Emerald) */}
           <line
             x1={padding.left}
             y1={goalY}
@@ -136,29 +160,41 @@ export function WeightChart({
             x={width - padding.right}
             y={goalY - 4}
             textAnchor="end"
-            className="fill-emerald-500 text-[8px] font-bold"
+            className="fill-emerald-500 text-[8px] font-bold font-mono"
           >
             เป้าหมาย {goalWeightKg}kg
           </text>
 
-          {/* Expected Weight Line (Dashed Slate) */}
+          {/* Expected Weight Line (Dashed Muted) */}
           <path
             d={expectedPath}
             fill="none"
-            stroke="#94a3b8"
+            stroke="var(--text-muted)"
             strokeWidth="1.5"
             strokeDasharray="3 3"
           />
 
-          {/* 7-Day Moving Average Line (Solid Cobalt) */}
-          {sortedLoggedDays.length >= 2 && (
-            <path
-              d={movingAvgPath}
-              fill="none"
-              stroke="#2563eb"
-              strokeWidth="2"
-              strokeLinecap="round"
-            />
+          {/* Recalibration Annotation Marker */}
+          {recalX && (
+            <g key="recal-marker">
+              <line
+                x1={recalX}
+                y1={padding.top}
+                x2={recalX}
+                y2={height - padding.bottom}
+                stroke="var(--accent-color)"
+                strokeWidth="1"
+                strokeDasharray="3 3"
+              />
+              <text
+                x={recalX}
+                y={padding.top - 5}
+                textAnchor="middle"
+                className="fill-brass-400 text-[8px] font-mono font-bold"
+              >
+                ปรับแผน (Day {recalDay})
+              </text>
+            </g>
           )}
 
           {/* Today Vertical Marker Line */}
@@ -174,6 +210,17 @@ export function WeightChart({
             />
           )}
 
+          {/* 7-Day Moving Average Line (Solid Brass Accent) */}
+          {sortedLoggedDays.length >= 2 && (
+            <path
+              d={movingAvgPath}
+              fill="none"
+              stroke="var(--accent-color)"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+            />
+          )}
+
           {/* Daily Log Dots */}
           {sortedLoggedDays.map((day) => {
             const w = logMap.get(day)!;
@@ -186,7 +233,7 @@ export function WeightChart({
                 cx={cx}
                 cy={cy}
                 r="3.5"
-                className="fill-cobalt-600 dark:fill-cobalt-400 stroke-white dark:stroke-slate-900 cursor-pointer hover:r-5 transition-all"
+                className="fill-brass-400 stroke-[var(--bg-surface)] cursor-pointer hover:r-5 transition-all"
                 strokeWidth="1.5"
                 onClick={() => setSelectedPoint({ day, weight: w, expected: exp })}
               />
@@ -196,20 +243,20 @@ export function WeightChart({
       </div>
 
       {/* Legend */}
-      <div className="flex items-center justify-center gap-4 text-[11px] text-slate-500 dark:text-slate-400 pt-1">
-        <div className="flex items-center gap-1.5">
-          <span className="w-3 h-0.5 bg-cobalt-600 rounded-full" />
+      <div className="flex items-center justify-center gap-6 text-[11px] text-[var(--text-secondary)] pt-2 border-t border-[var(--border-color)]">
+        <div className="flex items-center gap-2">
+          <span className="w-3 h-1 bg-brass-400 rounded-full" />
           <span>เฉลี่ย 7 วัน</span>
         </div>
-        <div className="flex items-center gap-1.5">
-          <span className="w-3 h-0.5 border-b border-dashed border-slate-400" />
-          <span>แผน</span>
+        <div className="flex items-center gap-2">
+          <span className="w-3 h-0.5 border-b border-dashed border-[var(--text-muted)]" />
+          <span>แผนตั้งต้น</span>
         </div>
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-2">
           <span className="w-3 h-0.5 border-b border-dashed border-emerald-500" />
           <span>เป้าหมาย</span>
         </div>
       </div>
-    </div>
+    </Card>
   );
 }

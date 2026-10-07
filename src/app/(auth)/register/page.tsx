@@ -3,12 +3,16 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Flame, Lock, User, Key, AlertCircle } from 'lucide-react';
+import { Card } from '@/components/ui/Card';
+import { Field } from '@/components/ui/Field';
+import { Button } from '@/components/ui/Button';
+import { Icon } from '@/components/ui/Icon';
 
 export default function RegisterPage() {
   const router = useRouter();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [inviteCode, setInviteCode] = useState('');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -38,113 +42,119 @@ export default function RegisterPage() {
         setErrorMsg(data.error?.message || 'เกิดข้อผิดพลาดในการลงทะเบียน');
       }
     } catch {
-      setErrorMsg('เกิดข้อผิดพลาดในการเชื่อมต่อ');
+      setErrorMsg('เกิดข้อผิดพลาดในการเชื่อมต่อเครือข่าย');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-center px-4 py-8 bg-slate-50 dark:bg-[#0b1319]">
-      <div className="max-w-sm mx-auto w-full space-y-6">
-        {/* Header */}
+    <div className="min-h-screen flex flex-col justify-center items-center px-4 py-8 bg-[var(--bg-main)]">
+      <div className="max-w-md mx-auto w-full space-y-6">
+        {/* Brand Header */}
         <div className="text-center space-y-2">
-          <div className="w-14 h-14 rounded-2xl bg-cobalt-600 text-white flex items-center justify-center mx-auto shadow-lg shadow-cobalt-500/20">
-            <Flame className="w-8 h-8 fill-current text-amber-300" />
+          <div className="w-14 h-14 rounded-2xl bg-brass-400 text-obsidian-950 flex items-center justify-center mx-auto shadow-brass-glow">
+            <Icon name="Flame" size={28} />
           </div>
-          <h1 className="font-brand font-bold text-3xl uppercase tracking-wide text-slate-900 dark:text-white">
+          <h1 className="font-display font-bold text-3xl uppercase tracking-wider text-[var(--text-primary)]">
             CUT 90 PLANNER
           </h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
-            สมัครสมาชิกเพื่อเริ่มแผน 90 วันของคุณ
+          <p className="text-xs text-[var(--text-secondary)]">
+            ลงทะเบียนเพื่อสร้างแผนผังโภชนาการ 90 วันของคุณ
           </p>
         </div>
 
-        {/* Form Card */}
-        <div className="bg-white dark:bg-[#15202b] rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
-          <h2 className="font-semibold text-sm text-slate-900 dark:text-white uppercase tracking-wider text-center">
-            ลงทะเบียนใหม่
+        {/* Card Form */}
+        <Card variant="default" padding="lg" className="space-y-4">
+          <h2 className="font-display font-bold text-base text-[var(--text-primary)] uppercase tracking-wider text-center">
+            ลงทะเบียนสมาชิกใหม่ (Create Account)
           </h2>
 
           {errorMsg && (
-            <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/40 text-rose-700 dark:text-rose-300 text-xs font-medium flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 shrink-0" />
+            <div className="p-3.5 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-700 dark:text-rose-300 text-xs font-medium flex items-center gap-2">
+              <Icon name="AlertCircle" size={16} className="shrink-0" />
               <span>{errorMsg}</span>
             </div>
           )}
 
           <form onSubmit={handleRegister} className="space-y-4">
-            <div>
-              <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                ชื่อผู้ใช้ (a-z, 0-9, _)
-              </label>
-              <div className="relative">
-                <User className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
-                <input
-                  type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  placeholder="username"
-                  minLength={3}
-                  maxLength={32}
-                  required
-                  className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-sm"
-                />
-              </div>
+            <Field
+              label="ชื่อผู้ใช้ (Username)"
+              icon="UserRound"
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="ความยาว 3-32 ตัวอักษร"
+              minLength={3}
+              maxLength={32}
+              required
+            />
+
+            <div className="space-y-1.5 relative">
+              <Field
+                label="รหัสผ่าน (Password)"
+                icon="KeyRound"
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="ความยาวอย่างน้อย 8 ตัวอักษร"
+                minLength={8}
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-8 text-[var(--text-muted)] hover:text-[var(--text-primary)] p-1 rounded"
+                aria-label={showPassword ? 'ซ่อนรหัสผ่าน' : 'แสดงรหัสผ่าน'}
+              >
+                <Icon name={showPassword ? 'EyeOff' : 'Eye'} size={16} />
+              </button>
             </div>
 
-            <div>
-              <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                รหัสผ่าน (อย่างน้อย 8 ตัวอักษร)
-              </label>
-              <div className="relative">
-                <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  minLength={8}
-                  required
-                  className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-sm"
-                />
-              </div>
-            </div>
+            <Field
+              label="รหัสเชิญ (Invite Code)"
+              icon="ShieldCheck"
+              type="text"
+              value={inviteCode}
+              onChange={(e) => setInviteCode(e.target.value)}
+              placeholder="กรอกรหัสเชิญ (ถ้ากำหนด)"
+              helperText="ถ้าผู้ดูแลระบบไม่ได้เปิดระบบปิด ไม่จำเป็นต้องกรอก"
+            />
 
-            <div>
-              <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                รหัสเชิญ (Invite Code) [ถ้ามี]
-              </label>
-              <div className="relative">
-                <Key className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
-                <input
-                  type="text"
-                  value={inviteCode}
-                  onChange={(e) => setInviteCode(e.target.value)}
-                  placeholder="รหัสเชิญ (ถ้ากำหนด)"
-                  className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-sm"
-                />
-              </div>
-            </div>
-
-            <button
+            <Button
               type="submit"
-              disabled={loading}
-              className="w-full h-11 rounded-xl bg-cobalt-600 hover:bg-cobalt-700 text-white font-medium text-sm transition-all shadow-sm flex items-center justify-center"
+              isLoading={loading}
+              variant="primary"
+              size="md"
+              fullWidth
+              leftIcon={<Icon name="Check" size={16} />}
             >
-              {loading ? 'กำลังลงทะเบียน...' : 'สมัครสมาชิก'}
-            </button>
+              สมัครสมาชิก
+            </Button>
           </form>
 
-          <div className="text-center pt-2 text-xs text-slate-500">
-            มีบัญชีอยู่แล้ว?{' '}
+          <div className="text-center pt-2 text-xs text-[var(--text-secondary)]">
+            มีบัญชีผู้ใช้แล้ว?{' '}
             <Link
               href="/login"
-              className="text-cobalt-600 dark:text-cobalt-400 font-semibold hover:underline"
+              className="text-brass-400 font-semibold hover:underline"
             >
               เข้าสู่ระบบ
             </Link>
           </div>
+        </Card>
+
+        {/* Footer */}
+        <div className="flex items-center justify-center gap-4 text-[11px] text-[var(--text-muted)]">
+          <Link href="/privacy" className="hover:underline flex items-center gap-1">
+            <Icon name="ShieldCheck" size={13} />
+            <span>นโยบายความเป็นส่วนตัว</span>
+          </Link>
+          <span>•</span>
+          <Link href="/help" className="hover:underline flex items-center gap-1">
+            <Icon name="CircleHelp" size={13} />
+            <span>ศูนย์ช่วยเหลือ</span>
+          </Link>
         </div>
       </div>
     </div>

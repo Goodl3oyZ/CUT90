@@ -5,12 +5,21 @@ node_modules/
 .next/
 out/
 
+# generated PWA service worker build artifacts
+public/sw.js
+public/sw.js.map
+public/workbox-*.js
+
 # env files (keep .env.example)
 .env
 .env.local
 .env.production
+.env.development.local
+.env.test.local
+.env.production.local
 
-# database
+# database & data directory
+data/
 *.db
 *.db-shm
 *.db-wal
@@ -23,9 +32,10 @@ Thumbs.db
 .vscode/
 .idea/
 
-# test results
+# test results & logs
 test-results/
 playwright-report/
+*.log
 
 # misc
 *.tsbuildinfo

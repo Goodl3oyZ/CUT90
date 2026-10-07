@@ -3,20 +3,19 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Header } from '@/components/layout/Header';
-import { BottomNav } from '@/components/layout/BottomNav';
+import { NavLayout } from '@/components/ui/NavLayout';
 import { WeightChart } from '@/components/trend/WeightChart';
 import { WeeklyTable } from '@/components/trend/WeeklyTable';
+import { Skeleton } from '@/components/ui/Skeleton';
+import { Icon } from '@/components/ui/Icon';
 import {
   calculatePlan,
-  calculatePlanSummary,
   DailyLogInput,
   getDayForDate,
   getTodayStr,
   PlanDay,
-  PlanSummary,
   UserProfile,
 } from '@/lib/plan';
-import { Loader2, TrendingDown, Flame, Calendar, Scale } from 'lucide-react';
 
 export default function TrendPage() {
   const router = useRouter();
@@ -24,7 +23,6 @@ export default function TrendPage() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [planDays, setPlanDays] = useState<PlanDay[]>([]);
   const [logs, setLogs] = useState<DailyLogInput[]>([]);
-  const [summary, setSummary] = useState<PlanSummary | null>(null);
   const [todayDayNumber, setTodayDayNumber] = useState<number | null>(null);
 
   useEffect(() => {
@@ -60,14 +58,10 @@ export default function TrendPage() {
 
         const logsRes = await fetch('/api/logs');
         const logsData = logsRes.ok ? await logsRes.json() : { logs: [] };
-        const loadedLogs: DailyLogInput[] = logsData.logs || [];
-        setLogs(loadedLogs);
 
         const plan = calculatePlan(userProf);
         setPlanDays(plan);
-
-        const planSum = calculatePlanSummary(userProf, plan);
-        setSummary(planSum);
+        setLogs(logsData.logs || []);
 
         const todayStr = getTodayStr();
         const calculatedToday = getDayForDate(userProf.startDate, todayStr);
@@ -82,77 +76,43 @@ export default function TrendPage() {
     loadData();
   }, [router]);
 
-  if (loading || !profile || !summary || planDays.length === 0) {
+  if (loading || !profile || planDays.length === 0) {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-[#0b1319] flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-cobalt-600" />
-      </div>
+      <NavLayout>
+        <Header />
+        <main className="max-w-5xl mx-auto px-4 sm:px-6 pt-6 space-y-6">
+          <Skeleton variant="text" className="h-8 w-48" />
+          <Skeleton variant="card" className="h-64" />
+        </main>
+      </NavLayout>
     );
   }
 
-  // Calculate actual total weight drop logged so far
-  const validWeightLogs = logs
-    .filter((l) => typeof l.weightKg === 'number' && l.weightKg > 0)
-    .sort((a, b) => a.day - b.day);
-
-  const firstLoggedWeight = validWeightLogs[0]?.weightKg ?? profile.startWeightKg;
-  const latestLoggedWeight =
-    validWeightLogs[validWeightLogs.length - 1]?.weightKg ?? profile.startWeightKg;
-  const actualTotalDrop = Math.round((firstLoggedWeight - latestLoggedWeight) * 10) / 10;
-
   return (
-    <div className="min-h-screen pb-24 bg-slate-50 dark:bg-[#0b1319]">
+    <NavLayout>
       <Header />
 
-      <main className="max-w-md mx-auto px-4 pt-4 space-y-4">
-        <h1 className="font-brand font-bold text-2xl uppercase tracking-wider text-slate-900 dark:text-white">
-          แนวโน้มและความคืบหน้า
-        </h1>
-
-        {/* Summary Metric Cards */}
-        <div className="grid grid-cols-2 gap-3">
-          <div className="bg-white dark:bg-[#15202b] rounded-2xl p-4 border border-slate-200 dark:border-slate-800 shadow-sm space-y-1">
-            <div className="text-xs font-semibold text-slate-500 flex items-center gap-1.5 uppercase">
-              <Scale className="w-3.5 h-3.5 text-cobalt-500" />
-              <span>น้ำหนักที่ลดได้จริง</span>
-            </div>
-            <div className="font-brand text-2xl font-bold tabular-nums text-slate-900 dark:text-white">
-              {actualTotalDrop > 0 ? `-${actualTotalDrop.toFixed(1)}` : '0.0'}{' '}
-              <span className="text-sm text-slate-500 font-normal">กก.</span>
-            </div>
-            <p className="text-[11px] text-slate-400">
-              เป้าหมายลดทั้งหมด {summary.totalPlannedDropKg} กก.
-            </p>
-          </div>
-
-          <div className="bg-white dark:bg-[#15202b] rounded-2xl p-4 border border-slate-200 dark:border-slate-800 shadow-sm space-y-1">
-            <div className="text-xs font-semibold text-slate-500 flex items-center gap-1.5 uppercase">
-              <Flame className="w-3.5 h-3.5 text-amber-500" />
-              <span>พรวดแคลอรี่เฉลี่ย</span>
-            </div>
-            <div className="font-brand text-2xl font-bold tabular-nums text-slate-900 dark:text-white">
-              -{summary.avgDailyDeficit}{' '}
-              <span className="text-sm text-slate-500 font-normal">kcal/วัน</span>
-            </div>
-            <p className="text-[11px] text-slate-400">
-              ~{summary.weeklyDropKg} กก./สัปดาห์ ({summary.weeklyDropPercentBw}%)
-            </p>
-          </div>
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 pt-6 space-y-6">
+        <div className="border-b border-[var(--border-color)] pb-4">
+          <h1 className="font-display font-bold text-2xl uppercase tracking-wider text-[var(--text-primary)] flex items-center gap-2">
+            <Icon name="LineChart" size={24} className="text-brass-400" />
+            <span>แนวโน้มและสถิติ (Progress & Trend)</span>
+          </h1>
+          <p className="text-xs text-[var(--text-secondary)] mt-1">
+            การวิเคราะห์น้ำหนักตัว 7-Day Moving Average เพื่อติดตามผลการลดไขมันที่แท้จริง
+          </p>
         </div>
 
-        {/* SVG Weight Line Chart */}
         <WeightChart
           planDays={planDays}
           logs={logs}
           goalWeightKg={profile.goalWeightKg}
+          recalDay={profile.recalDay}
           todayDayNumber={todayDayNumber}
         />
 
-        {/* Weekly Summary Table */}
         <WeeklyTable planDays={planDays} logs={logs} />
       </main>
-
-      <BottomNav />
-    </div>
+    </NavLayout>
   );
 }

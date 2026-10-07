@@ -1,72 +1,115 @@
+'use client';
+
+import React from 'react';
 import { StatusCardData } from '@/lib/plan';
-import { TrendingDown, TrendingUp, CheckCircle, AlertCircle } from 'lucide-react';
-import clsx from 'clsx';
+import { Card } from '@/components/ui/Card';
+import { Pill } from '@/components/ui/Pill';
+import { Ring } from '@/components/ui/Ring';
+import { Popover } from '@/components/ui/Popover';
+import { Icon } from '@/components/ui/Icon';
 
 interface StatusCardProps {
   data: StatusCardData;
+  startWeightKg: number;
+  goalWeightKg: number;
+  currentDayNumber: number;
 }
 
-export function StatusCard({ data }: StatusCardProps) {
+export function StatusCard({
+  data,
+  startWeightKg,
+  goalWeightKg,
+  currentDayNumber,
+}: StatusCardProps) {
   const { status, diffKg, loggedDaysCount, meanActualKg, meanExpectedKg } = data;
 
-  const pillConfig = {
+  const totalToLose = Math.max(0.1, startWeightKg - goalWeightKg);
+  const currentActual = meanActualKg ?? startWeightKg;
+  const lostSoFar = Math.max(0, startWeightKg - currentActual);
+  const remainingToGoal = Math.max(0, currentActual - goalWeightKg);
+  const weightProgressPercent = Math.min(100, Math.max(0, (lostSoFar / totalToLose) * 100));
+  const dayProgressPercent = Math.min(100, Math.max(0, (currentDayNumber / 90) * 100));
+
+  const statusMap = {
     ahead: {
-      label: 'เร็วกว่าแผน',
-      bgColor: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20',
-      icon: TrendingDown,
+      statusText: 'เร็วกว่าแผน',
+      variant: 'ahead' as const,
+      sentence: `เร็วกว่าแผน: เฉลี่ย 7 วัน ${meanActualKg ? meanActualKg.toFixed(2) : '-'} kg (เร็วกว่าแผน ${Math.abs(diffKg).toFixed(1)} kg) เหลืออีก ${remainingToGoal.toFixed(1)} kg ถึงเป้าหมาย`,
     },
     on_track: {
-      label: 'ตามแผน',
-      bgColor: 'bg-cobalt-500/10 text-cobalt-700 dark:text-cobalt-400 border-cobalt-500/20',
-      icon: CheckCircle,
+      statusText: 'ตามแผน',
+      variant: 'on_track' as const,
+      sentence: `ตามแผน: เฉลี่ย 7 วัน ${meanActualKg ? meanActualKg.toFixed(2) : '-'} kg เหลืออีก ${remainingToGoal.toFixed(1)} kg ถึงเป้าหมาย`,
     },
     behind: {
-      label: 'ช้ากว่าแผน',
-      bgColor: 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20',
-      icon: AlertCircle,
+      statusText: 'ช้ากว่าแผน',
+      variant: 'behind' as const,
+      sentence: `ช้ากว่าแผน: เฉลี่ย 7 วัน ${meanActualKg ? meanActualKg.toFixed(2) : '-'} kg (สูงกว่าแผน ${Math.abs(diffKg).toFixed(1)} kg) เหลืออีก ${remainingToGoal.toFixed(1)} kg ถึงเป้าหมาย`,
     },
   }[status];
 
-  const Icon = pillConfig.icon;
-
   return (
-    <div className="bg-white dark:bg-[#15202b] rounded-2xl p-4 border border-slate-200 dark:border-slate-800 shadow-sm">
-      <div className="flex items-center justify-between mb-3">
-        <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-          สถานะ 7 วันล่าสุด
-        </span>
-        <div
-          className={clsx(
-            'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border',
-            pillConfig.bgColor
-          )}
-        >
-          <Icon className="w-3.5 h-3.5" />
-          <span>{pillConfig.label}</span>
-        </div>
-      </div>
-
-      <div className="flex items-baseline justify-between">
-        <div>
-          <span className="font-brand text-3xl font-bold tabular-nums text-slate-900 dark:text-white">
-            {diffKg > 0 ? `+${diffKg.toFixed(1)}` : diffKg.toFixed(1)}
+    <Card variant="hero" padding="md" className="space-y-4">
+      {/* Top Bar: Title & Status Pill & Info Popover */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className="font-mono text-xs uppercase tracking-wider text-brass-400 font-semibold flex items-center gap-1.5">
+            <Icon name="Compass" size={15} />
+            สถานะภาพรวมประเมินผล 7 วัน
           </span>
-          <span className="ml-1 text-sm font-medium text-slate-500">กก. (เทียบแผน)</span>
+          <Popover
+            title="สถานะเฉลี่ย 7 วัน"
+            description="การคำนวณเปรียบเทียบน้ำหนักเฉลี่ยย้อนหลัง 7 วันกับแผนที่วางไว้ ช่วยลดผลกระทบจากความผันผวนของน้ำหนักรายวัน"
+            glossaryAnchor="7day-average"
+          />
         </div>
-
-        {loggedDaysCount > 0 && meanActualKg && meanExpectedKg && (
-          <div className="text-right text-xs text-slate-500 dark:text-slate-400 font-mono">
-            <div>เฉลี่ยจริง {meanActualKg.toFixed(1)} กก.</div>
-            <div>เฉลี่ยแผน {meanExpectedKg.toFixed(1)} กก.</div>
-          </div>
-        )}
+        <Pill label={statusMap.statusText} variant={statusMap.variant} />
       </div>
 
-      {loggedDaysCount === 0 && (
-        <p className="text-xs text-slate-400 dark:text-slate-500 mt-2">
-          ยังไม่มีข้อมูลบันทึกน้ำหนักใน 7 วันที่ผ่านมา
+      {/* Main Single Sentence Answer */}
+      <div className="p-3.5 rounded-xl bg-[var(--bg-surface-elevated)]/90 border border-[var(--border-color)]">
+        <p className="font-display font-semibold text-base sm:text-lg text-[var(--text-primary)] leading-snug">
+          {statusMap.sentence}
         </p>
-      )}
-    </div>
+      </div>
+
+      {/* Dual Progress Rings / Stats Bar */}
+      <div className="grid grid-cols-2 gap-4 pt-2 border-t border-[var(--border-color)]">
+        <div className="flex items-center gap-3">
+          <Ring
+            value={dayProgressPercent}
+            size={72}
+            strokeWidth={6}
+            label={`${currentDayNumber}/90`}
+            sublabel="วัน"
+          />
+          <div>
+            <span className="text-xs text-[var(--text-secondary)] block">ความคืบหน้าเวลา</span>
+            <span className="font-mono font-bold text-sm text-[var(--text-primary)]">
+              {currentDayNumber} จาก 90 วัน
+            </span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <Ring
+            value={weightProgressPercent}
+            size={72}
+            strokeWidth={6}
+            label={`${weightProgressPercent.toFixed(0)}%`}
+            sublabel="เป้าหมาย"
+          />
+          <div>
+            <span className="text-xs text-[var(--text-secondary)] block">ลดได้แล้ว</span>
+            <span className="font-mono font-bold text-sm text-brass-400">
+              {lostSoFar.toFixed(1)} กก.
+            </span>
+            <span className="text-[10px] text-[var(--text-muted)] block font-mono">
+              เป้า {goalWeightKg} กก.
+            </span>
+          </div>
+        </div>
+      </div>
+    </Card>
   );
 }

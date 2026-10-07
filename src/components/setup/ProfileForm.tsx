@@ -2,7 +2,13 @@
 
 import { useState } from 'react';
 import { UserProfile, ActivityLevel, Sex } from '@/lib/plan';
-import { Save, AlertTriangle, RefreshCw, Check } from 'lucide-react';
+import { Card } from '@/components/ui/Card';
+import { Field } from '@/components/ui/Field';
+import { Select } from '@/components/ui/Select';
+import { Button } from '@/components/ui/Button';
+import { Icon } from '@/components/ui/Icon';
+import { Popover } from '@/components/ui/Popover';
+import { Sheet } from '@/components/ui/Sheet';
 import clsx from 'clsx';
 
 interface ProfileFormProps {
@@ -30,6 +36,7 @@ export function ProfileForm({
 
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [showRecalibrateSheet, setShowRecalibrateSheet] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -85,205 +92,221 @@ export function ProfileForm({
   };
 
   return (
-    <div className="bg-white dark:bg-[#15202b] rounded-2xl p-4 sm:p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
-      <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
-        <h3 className="font-semibold text-sm text-slate-900 dark:text-white uppercase tracking-wider">
-          แก้ไขข้อมูลร่างกายและเป้าหมาย
-        </h3>
+    <Card variant="default" padding="md" className="space-y-6">
+      <div className="flex items-center justify-between border-b border-[var(--border-color)] pb-3">
+        <div className="flex items-center gap-2">
+          <h2 className="font-display font-bold text-base text-[var(--text-primary)] flex items-center gap-2">
+            <Icon name="SlidersHorizontal" size={18} className="text-brass-400" />
+            <span>แก้ไขข้อมูลร่างกายและเป้าหมาย</span>
+          </h2>
+          <Popover
+            title="การตั้งค่าโปรไฟล์"
+            description="ค่าส่วนสูง เพศ อายุ และระดับกิจกรรมใช้ในการคำนวณอัตราการเผาผลาญพื้นฐาน (BMR/TDEE) แบบวิทยาศาสตร์"
+            glossaryAnchor="bmr"
+          />
+        </div>
 
         {profile.recalDay && (
-          <button
+          <Button
             type="button"
             onClick={onClearRecalibrate}
-            className="text-xs text-amber-600 hover:text-amber-700 font-medium underline"
+            variant="ghost"
+            size="sm"
+            className="text-amber-500 hover:text-amber-400 text-xs"
           >
             ยกเลิกการปรับแผน
-          </button>
+          </Button>
         )}
       </div>
 
       {message && (
         <div
           className={clsx(
-            'p-3 rounded-xl text-xs font-medium flex items-center gap-2',
+            'p-3.5 rounded-xl text-xs font-medium flex items-center gap-2',
             message.includes('เรียบร้อย')
-              ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300'
-              : 'bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300'
+              ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30'
+              : 'bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-500/30'
           )}
         >
-          {message.includes('เรียบร้อย') ? <Check className="w-4 h-4" /> : <AlertTriangle className="w-4 h-4" />}
+          <Icon name={message.includes('เรียบร้อย') ? 'Check' : 'AlertCircle'} size={16} />
           <span>{message}</span>
         </div>
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Sex */}
-        <div>
-          <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-            เพศ
+        <div className="space-y-1.5">
+          <label className="flex items-center gap-1.5 text-xs font-medium text-[var(--text-secondary)]">
+            <Icon name="UserRound" size={14} className="text-brass-400" />
+            <span>เพศชีววิทยา</span>
           </label>
           <div className="grid grid-cols-2 gap-3">
-            <button
+            <Button
               type="button"
               onClick={() => setSex('male')}
-              className={clsx(
-                'py-2.5 rounded-xl border text-sm font-medium transition-colors',
-                sex === 'male'
-                  ? 'bg-cobalt-600 text-white border-cobalt-600'
-                  : 'bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300'
-              )}
+              variant={sex === 'male' ? 'primary' : 'secondary'}
+              size="sm"
             >
               ชาย (Male)
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
               onClick={() => setSex('female')}
-              className={clsx(
-                'py-2.5 rounded-xl border text-sm font-medium transition-colors',
-                sex === 'female'
-                  ? 'bg-cobalt-600 text-white border-cobalt-600'
-                  : 'bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300'
-              )}
+              variant={sex === 'female' ? 'primary' : 'secondary'}
+              size="sm"
             >
               หญิง (Female)
-            </button>
+            </Button>
           </div>
         </div>
 
         {/* Age, Height */}
         <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-              อายุ (ปี)
-            </label>
-            <input
-              type="number"
-              value={age}
-              onChange={(e) => setAge(Number(e.target.value))}
-              className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-              ส่วนสูง (ซม.)
-            </label>
-            <input
-              type="number"
-              value={heightCm}
-              onChange={(e) => setHeightCm(Number(e.target.value))}
-              className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white"
-            />
-          </div>
+          <Field
+            label="อายุ"
+            unit="ปี"
+            type="number"
+            value={age}
+            onChange={(e) => setAge(Number(e.target.value))}
+          />
+          <Field
+            label="ส่วนสูง"
+            unit="ซม."
+            type="number"
+            value={heightCm}
+            onChange={(e) => setHeightCm(Number(e.target.value))}
+          />
         </div>
 
         {/* Start Weight, Goal Weight */}
         <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-              น้ำหนักเริ่มต้น (กก.)
-            </label>
-            <input
-              type="number"
-              step="0.1"
-              value={startWeightKg}
-              onChange={(e) => setStartWeightKg(Number(e.target.value))}
-              className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-              น้ำหนักเป้าหมาย (กก.)
-            </label>
-            <input
-              type="number"
-              step="0.1"
-              value={goalWeightKg}
-              onChange={(e) => setGoalWeightKg(Number(e.target.value))}
-              className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white"
-            />
-          </div>
-        </div>
-
-        {/* Activity Level */}
-        <div>
-          <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-            ระดับกิจกรรมประจำวัน
-          </label>
-          <select
-            value={activityLevel}
-            onChange={(e) => setActivityLevel(e.target.value as ActivityLevel)}
-            className="w-full px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-sm"
-          >
-            <option value="sedentary">นั่งทำงานอยู่กับที่ ไม่ค่อยออกกำลังกาย (x1.2)</option>
-            <option value="lightly">ออกกำลังกายเบาๆ 1-3 วัน/สัปดาห์ (x1.375)</option>
-            <option value="moderately">ออกกำลังกายปานกลาง 3-5 วัน/สัปดาห์ (x1.55)</option>
-            <option value="very">ออกกำลังกายหนัก 6-7 วัน/สัปดาห์ (x1.725)</option>
-            <option value="extremely">นักกีฬา / ทำงานใช้แรงงานหนักมาก (x1.9)</option>
-          </select>
-        </div>
-
-        {/* Start Date */}
-        <div>
-          <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-            วันที่เริ่มแผน (YYYY-MM-DD)
-          </label>
-          <input
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white"
+          <Field
+            label="น้ำหนักเริ่มต้น"
+            unit="กก."
+            type="number"
+            step="0.1"
+            value={startWeightKg}
+            onChange={(e) => setStartWeightKg(Number(e.target.value))}
+          />
+          <Field
+            label="น้ำหนักเป้าหมาย"
+            unit="กก."
+            type="number"
+            step="0.1"
+            value={goalWeightKg}
+            onChange={(e) => setGoalWeightKg(Number(e.target.value))}
           />
         </div>
 
+        {/* Activity Level */}
+        <Select
+          label="ระดับกิจกรรมประจำวัน"
+          icon="Compass"
+          value={activityLevel}
+          onChange={(e) => setActivityLevel(e.target.value as ActivityLevel)}
+          options={[
+            { value: 'sedentary', label: 'นั่งทำงานอยู่กับที่ ไม่ค่อยออกกำลังกาย (x1.2)' },
+            { value: 'lightly', label: 'ออกกำลังกายเบาๆ 1-3 วัน/สัปดาห์ (x1.375)' },
+            { value: 'moderately', label: 'ออกกำลังกายปานกลาง 3-5 วัน/สัปดาห์ (x1.55)' },
+            { value: 'very', label: 'ออกกำลังกายหนัก 6-7 วัน/สัปดาห์ (x1.725)' },
+            { value: 'extremely', label: 'นักกีฬา / ทำงานใช้แรงงานหนักมาก (x1.9)' },
+          ]}
+        />
+
+        {/* Start Date */}
+        <Field
+          label="วันที่เริ่มแผน 90 วัน"
+          icon="Calendar"
+          type="date"
+          value={startDate}
+          onChange={(e) => setStartDate(e.target.value)}
+        />
+
         {/* Macros G/Kg */}
         <div className="grid grid-cols-2 gap-3 pt-2">
-          <div>
-            <label className="block text-xs font-medium text-cobalt-600 dark:text-cobalt-400 mb-1">
-              โปรตีน (g/น้ำหนักตัว kg)
-            </label>
-            <input
-              type="number"
-              step="0.1"
-              value={proteinGPerKg}
-              onChange={(e) => setProteinGPerKg(Number(e.target.value))}
-              className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-rose-600 dark:text-rose-400 mb-1">
-              ไขมัน (g/น้ำหนักตัว kg)
-            </label>
-            <input
-              type="number"
-              step="0.1"
-              value={fatGPerKg}
-              onChange={(e) => setFatGPerKg(Number(e.target.value))}
-              className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white"
-            />
-          </div>
+          <Field
+            label="โปรตีน"
+            unit="g/kg"
+            type="number"
+            step="0.1"
+            value={proteinGPerKg}
+            onChange={(e) => setProteinGPerKg(Number(e.target.value))}
+            helperText="แนะนำ 2.0 - 2.4 g/kg"
+          />
+          <Field
+            label="ไขมัน"
+            unit="g/kg"
+            type="number"
+            step="0.1"
+            value={fatGPerKg}
+            onChange={(e) => setFatGPerKg(Number(e.target.value))}
+            helperText="แนะนำ 0.7 - 0.9 g/kg"
+          />
         </div>
 
-        {/* Actions */}
-        <div className="flex flex-col sm:flex-row items-center gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
-          <button
+        {/* Form Actions */}
+        <div className="flex flex-col sm:flex-row items-center gap-3 pt-4 border-t border-[var(--border-color)]">
+          <Button
             type="submit"
-            disabled={saving}
-            className="w-full sm:flex-1 h-11 rounded-xl bg-cobalt-600 hover:bg-cobalt-700 text-white font-medium text-sm flex items-center justify-center gap-2 shadow-sm transition-all"
+            isLoading={saving}
+            variant="primary"
+            size="md"
+            fullWidth
+            leftIcon={<Icon name="Save" size={16} />}
           >
-            <Save className="w-4 h-4" />
-            <span>{saving ? 'กำลังบันทึก...' : 'บันทึกการเปลี่ยนแปลง'}</span>
-          </button>
+            บันทึกการเปลี่ยนแปลง
+          </Button>
 
-          <button
+          <Button
             type="button"
-            onClick={onRecalibrate}
-            className="w-full sm:w-auto h-11 px-4 rounded-xl border border-amber-500/30 text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 font-medium text-sm flex items-center justify-center gap-2 transition-all"
+            onClick={() => setShowRecalibrateSheet(true)}
+            variant="secondary"
+            size="md"
+            fullWidth
+            leftIcon={<Icon name="RefreshCw" size={16} className="text-amber-500" />}
           >
-            <RefreshCw className="w-4 h-4" />
-            <span>ปรับคำนวณแผนใหม่</span>
-          </button>
+            ปรับคำนวณแผนใหม่ (Recalibrate)
+          </Button>
         </div>
       </form>
-    </div>
+
+      {/* Recalibrate Confirmation Sheet */}
+      <Sheet
+        isOpen={showRecalibrateSheet}
+        onClose={() => setShowRecalibrateSheet(false)}
+        title="ยืนยันการปรับคำนวณแผนใหม่ (Recalibrate)"
+        subtitle="ใช้เมื่อน้ำหนักจริงเฉลี่ยย้อนหลังเบี่ยงเบนจากแผนเกินกำหนด"
+      >
+        <div className="space-y-4">
+          <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+            ระบบจะนำค่าน้ำหนักเฉลี่ย 7 วันล่าสุด ณ ปัจจุบัน มาตั้งเป็นจุดเริ่มต้นคำนวณแผนโภชนาการสำหรับวันที่เหลืออยู่ เพื่อให้ตรงตามอัตราเผาผลาญจริงของร่างกาย
+          </p>
+          <div className="flex items-center gap-3 pt-2">
+            <Button
+              type="button"
+              variant="secondary"
+              size="md"
+              fullWidth
+              onClick={() => setShowRecalibrateSheet(false)}
+            >
+              ยกเลิก
+            </Button>
+            <Button
+              type="button"
+              variant="primary"
+              size="md"
+              fullWidth
+              leftIcon={<Icon name="RefreshCw" size={16} />}
+              onClick={() => {
+                setShowRecalibrateSheet(false);
+                onRecalibrate();
+              }}
+            >
+              ยืนยันการปรับแผน
+            </Button>
+          </div>
+        </div>
+      </Sheet>
+    </Card>
   );
 }

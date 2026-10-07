@@ -2,7 +2,11 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Lock, Trash2, AlertTriangle, Check } from 'lucide-react';
+import { Card } from '@/components/ui/Card';
+import { Field } from '@/components/ui/Field';
+import { Button } from '@/components/ui/Button';
+import { Icon } from '@/components/ui/Icon';
+import { Sheet } from '@/components/ui/Sheet';
 import clsx from 'clsx';
 
 export function AccountSection() {
@@ -12,7 +16,7 @@ export function AccountSection() {
   const [newPassword, setNewPassword] = useState('');
   const [passMsg, setPassMsg] = useState<string | null>(null);
 
-  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [showDeleteSheet, setShowDeleteSheet] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
   const handleChangePassword = async (e: React.FormEvent) => {
@@ -54,109 +58,115 @@ export function AccountSection() {
   };
 
   return (
-    <div className="bg-white dark:bg-[#15202b] rounded-2xl p-4 sm:p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
+    <Card variant="default" padding="md" className="space-y-6">
       {/* Change Password */}
       <div className="space-y-4">
-        <h3 className="font-semibold text-sm text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
-          <Lock className="w-4 h-4 text-cobalt-500" />
-          <span>เปลี่ยนรหัสผ่าน</span>
-        </h3>
+        <h2 className="font-display font-bold text-base text-[var(--text-primary)] flex items-center gap-2">
+          <Icon name="KeyRound" size={18} className="text-brass-400" />
+          <span>เปลี่ยนรหัสผ่าน (Change Password)</span>
+        </h2>
 
         {passMsg && (
           <div
             className={clsx(
-              'p-3 rounded-xl text-xs font-medium flex items-center gap-2',
+              'p-3.5 rounded-xl text-xs font-medium flex items-center gap-2',
               passMsg.includes('เรียบร้อย')
-                ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300'
-                : 'bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300'
+                ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30'
+                : 'bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-500/30'
             )}
           >
-            {passMsg.includes('เรียบร้อย') ? <Check className="w-4 h-4" /> : <AlertTriangle className="w-4 h-4" />}
+            <Icon name={passMsg.includes('เรียบร้อย') ? 'Check' : 'AlertCircle'} size={16} />
             <span>{passMsg}</span>
           </div>
         )}
 
         <form onSubmit={handleChangePassword} className="space-y-3">
-          <div>
-            <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-              รหัสผ่านปัจจุบัน
-            </label>
-            <input
-              type="password"
-              value={currentPassword}
-              onChange={(e) => setCurrentPassword(e.target.value)}
-              required
-              className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white"
-            />
-          </div>
+          <Field
+            label="รหัสผ่านปัจจุบัน"
+            icon="KeyRound"
+            type="password"
+            value={currentPassword}
+            onChange={(e) => setCurrentPassword(e.target.value)}
+            required
+          />
 
-          <div>
-            <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-              รหัสผ่านใหม่ (อย่างน้อย 8 ตัวอักษร)
-            </label>
-            <input
-              type="password"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              required
-              minLength={8}
-              className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white"
-            />
-          </div>
+          <Field
+            label="รหัสผ่านใหม่"
+            icon="Lock"
+            type="password"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            required
+            minLength={8}
+            helperText="ความยาวอย่างน้อย 8 ตัวอักษร"
+          />
 
-          <button
+          <Button
             type="submit"
-            className="h-10 px-4 rounded-xl bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-white font-medium text-xs transition-all"
+            variant="secondary"
+            size="sm"
+            leftIcon={<Icon name="Check" size={14} />}
           >
             อัปเดตรหัสผ่าน
-          </button>
+          </Button>
         </form>
       </div>
 
       {/* Delete Account */}
-      <div className="pt-6 border-t border-slate-100 dark:border-slate-800 space-y-3">
-        <h3 className="font-semibold text-sm text-rose-600 dark:text-rose-400 uppercase tracking-wider flex items-center gap-2">
-          <Trash2 className="w-4 h-4" />
-          <span>ลบบัญชีผู้ใช้</span>
+      <div className="pt-6 border-t border-[var(--border-color)] space-y-3">
+        <h3 className="font-display font-bold text-base text-rose-500 flex items-center gap-2">
+          <Icon name="Trash2" size={18} />
+          <span>จัดการบัญชีและข้อมูล</span>
         </h3>
-        <p className="text-xs text-slate-500">
-          การลบบัญชีจะลบข้อมูลประวัติ ประวัติการบันทึก และการตั้งค่าทั้งหมดของคุณถาวร ไม่สามารถกู้คืนได้
+        <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+          การลบบัญชีผู้ใช้จะลบประวัติการบันทึก น้ำหนัก แผนผัง และการตั้งค่าทั้งหมดอย่างถาวร
         </p>
 
-        {!confirmDelete ? (
-          <button
-            type="button"
-            onClick={() => setConfirmDelete(true)}
-            className="h-10 px-4 rounded-xl border border-rose-500/30 text-rose-600 dark:text-rose-400 hover:bg-rose-500/10 font-medium text-xs transition-all"
-          >
-            ลบบัญชีถาวร...
-          </button>
-        ) : (
-          <div className="p-4 rounded-xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/40 space-y-3">
-            <div className="text-xs font-semibold text-rose-800 dark:text-rose-300 flex items-center gap-1.5">
-              <AlertTriangle className="w-4 h-4 shrink-0" />
-              <span>คุณแน่ใจหรือไม่ว่าต้องการลบบัญชีนี้?</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={handleDeleteAccount}
-                disabled={deleting}
-                className="h-9 px-4 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-medium text-xs transition-all"
-              >
-                {deleting ? 'กำลังลบ...' : 'ยืนยันลบบัญชี'}
-              </button>
-              <button
-                type="button"
-                onClick={() => setConfirmDelete(false)}
-                className="h-9 px-4 rounded-lg bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-xs"
-              >
-                ยกเลิก
-              </button>
-            </div>
-          </div>
-        )}
+        <Button
+          type="button"
+          onClick={() => setShowDeleteSheet(true)}
+          variant="danger"
+          size="sm"
+          leftIcon={<Icon name="Trash2" size={14} />}
+        >
+          ลบบัญชีผู้ใช้ถาวร...
+        </Button>
       </div>
-    </div>
+
+      <Sheet
+        isOpen={showDeleteSheet}
+        onClose={() => setShowDeleteSheet(false)}
+        title="ยืนยันการลบบัญชีถาวร"
+        subtitle="การกระทำนี้ไม่สามารถย้อนคืนได้ ข้อมูลทั้งหมดจะถูกลบทันที"
+      >
+        <div className="space-y-4">
+          <p className="text-xs text-rose-400 font-medium">
+            โปรดตรวจสอบให้แน่ใจว่าคุณได้สำรองข้อมูล (Export JSON) เรียบร้อยแล้วหากต้องการเก็บประวัติ
+          </p>
+          <div className="flex items-center gap-3 pt-2">
+            <Button
+              type="button"
+              variant="secondary"
+              size="md"
+              fullWidth
+              onClick={() => setShowDeleteSheet(false)}
+            >
+              ยกเลิก
+            </Button>
+            <Button
+              type="button"
+              variant="danger"
+              size="md"
+              fullWidth
+              isLoading={deleting}
+              onClick={handleDeleteAccount}
+              leftIcon={<Icon name="Trash2" size={16} />}
+            >
+              ยืนยันลบบัญชี
+            </Button>
+          </div>
+        </div>
+      </Sheet>
+    </Card>
   );
 }

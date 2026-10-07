@@ -3,7 +3,11 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { DailyLogInput } from '@/lib/plan';
 import { enqueueOfflineLog } from '@/lib/offline/queue';
-import { Save, Check, Loader2 } from 'lucide-react';
+import { Card } from '@/components/ui/Card';
+import { Field } from '@/components/ui/Field';
+import { Button } from '@/components/ui/Button';
+import { Icon } from '@/components/ui/Icon';
+import { Toast } from '@/components/ui/Toast';
 
 interface LogFormProps {
   day: number;
@@ -18,7 +22,8 @@ export function LogForm({ day, initialLog, onSaveSuccess }: LogFormProps) {
   const [fatG, setFatG] = useState<string>('');
   const [waistCm, setWaistCm] = useState<string>('');
 
-  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'offline'>('idle');
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'offline' | 'error'>('idle');
+  const [lastSavedTime, setLastSavedTime] = useState<string>('');
   const isInitialMount = useRef(true);
 
   // Sync state when day or initialLog changes
@@ -39,6 +44,12 @@ export function LogForm({ day, initialLog, onSaveSuccess }: LogFormProps) {
     return isNaN(num) ? null : num;
   };
 
+  // Compute live calorie sum as user types
+  const liveP = parseNum(proteinG) ?? 0;
+  const liveC = parseNum(carbG) ?? 0;
+  const liveF = parseNum(fatG) ?? 0;
+  const liveTotalKcal = Math.round(4 * liveP + 4 * liveC + 9 * liveF);
+
   const saveLog = useCallback(async () => {
     setSaveStatus('saving');
 
@@ -52,9 +63,12 @@ export function LogForm({ day, initialLog, onSaveSuccess }: LogFormProps) {
       updatedAt: Date.now(),
     };
 
+    const timeStr = new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+
     if (!navigator.onLine) {
       await enqueueOfflineLog(logPayload);
       setSaveStatus('offline');
+      setLastSavedTime(timeStr);
       if (onSaveSuccess) onSaveSuccess(logPayload);
       return;
     }
@@ -69,14 +83,17 @@ export function LogForm({ day, initialLog, onSaveSuccess }: LogFormProps) {
       if (res.ok) {
         const data = await res.json();
         setSaveStatus('saved');
+        setLastSavedTime(timeStr);
         if (onSaveSuccess) onSaveSuccess(data.log);
       } else {
         await enqueueOfflineLog(logPayload);
         setSaveStatus('offline');
+        setLastSavedTime(timeStr);
       }
     } catch {
       await enqueueOfflineLog(logPayload);
       setSaveStatus('offline');
+      setLastSavedTime(timeStr);
     }
   }, [day, weightKg, proteinG, carbG, fatG, waistCm, onSaveSuccess]);
 
@@ -95,120 +112,123 @@ export function LogForm({ day, initialLog, onSaveSuccess }: LogFormProps) {
   }, [weightKg, proteinG, carbG, fatG, waistCm, saveLog]);
 
   return (
-    <div className="bg-white dark:bg-[#15202b] rounded-2xl p-4 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="font-semibold text-sm text-slate-900 dark:text-white uppercase tracking-wider">
-          บันทึกผลประจำวัน (วัน {day})
+    <Card variant="default" padding="md" className="space-y-5">
+      {/* Header & Status Indicator */}
+      <div className="flex items-center justify-between border-b border-[var(--border-color)] pb-3">
+        <h2 className="font-display font-bold text-base text-[var(--text-primary)] flex items-center gap-2">
+          <Icon name="SlidersHorizontal" size={18} className="text-brass-400" />
+          <span>บันทึกผลประจำวัน (วัน {day})</span>
+        </h2>
+
+        {saveStatus !== 'idle' && (
+          <Toast status={saveStatus} timestamp={lastSavedTime} />
+        )}
+      </div>
+
+      {/* Group 1: Body Metrics (น้ำหนัก & สัดส่วน) */}
+      <div className="space-y-3">
+        <h3 className="text-xs font-semibold text-brass-400 uppercase tracking-wider flex items-center gap-1.5">
+          <Icon name="Scale" size={14} />
+          <span>กลุ่มที่ 1: น้ำหนักและสัดส่วนร่างกาย</span>
         </h3>
-        <div className="flex items-center gap-1 text-xs">
-          {saveStatus === 'saving' && (
-            <span className="text-slate-400 flex items-center gap-1">
-              <Loader2 className="w-3.5 h-3.5 animate-spin text-cobalt-500" />
-              กำลังบันทึก...
-            </span>
-          )}
-          {saveStatus === 'saved' && (
-            <span className="text-emerald-500 flex items-center gap-1 font-medium">
-              <Check className="w-3.5 h-3.5" />
-              บันทึกแล้ว
-            </span>
-          )}
-          {saveStatus === 'offline' && (
-            <span className="text-amber-500 flex items-center gap-1 font-medium">
-              รอซิงค์เมื่อออนไลน์
-            </span>
-          )}
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <Field
+            label="น้ำหนักเช้าชั่งหลังตื่น"
+            icon="Scale"
+            unit="กก."
+            type="text"
+            inputMode="decimal"
+            placeholder="เช่น 79.5"
+            value={weightKg}
+            onChange={(e) => setWeightKg(e.target.value)}
+            helperText="ชั่งตอนเช้าหลังเข้าห้องน้ำ ก่อนทานอาหาร"
+          />
+
+          <Field
+            label="รอบเอวผ่อนลมหายใจ"
+            icon="Ruler"
+            unit="ซม."
+            type="text"
+            inputMode="decimal"
+            placeholder="เช่น 84.0"
+            value={waistCm}
+            onChange={(e) => setWaistCm(e.target.value)}
+            helperText="วัดระดับสะดือในท่าสบายๆ (ถ้ามี)"
+          />
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        {/* Morning Weight */}
-        <div className="col-span-2 sm:col-span-1">
-          <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-            น้ำหนักเช้า (กก.) *
-          </label>
-          <input
-            type="text"
-            inputMode="decimal"
-            placeholder="เช่น 78.5"
-            value={weightKg}
-            onChange={(e) => setWeightKg(e.target.value)}
-            className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white tabular-nums focus:outline-none focus:ring-2 focus:ring-cobalt-500"
-          />
+      {/* Group 2: Nutrition (สารอาหาร & อาหาร) */}
+      <div className="space-y-3 pt-2 border-t border-[var(--border-color)]">
+        <div className="flex items-center justify-between">
+          <h3 className="text-xs font-semibold text-brass-400 uppercase tracking-wider flex items-center gap-1.5">
+            <Icon name="Utensils" size={14} />
+            <span>กลุ่มที่ 2: สารอาหารที่รับประทานจริง</span>
+          </h3>
+
+          <div className="text-xs font-mono font-medium text-[var(--text-secondary)]">
+            คำนวณสด: <span className="text-brass-400 font-bold">{liveTotalKcal}</span> kcal
+          </div>
         </div>
 
-        {/* Waist */}
-        <div className="col-span-2 sm:col-span-1">
-          <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-            รอบเอว (ซม.) [ถ้ามี]
-          </label>
-          <input
-            type="text"
-            inputMode="decimal"
-            placeholder="เช่น 82.0"
-            value={waistCm}
-            onChange={(e) => setWaistCm(e.target.value)}
-            className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white tabular-nums focus:outline-none focus:ring-2 focus:ring-cobalt-500"
-          />
-        </div>
-
-        {/* Protein */}
-        <div>
-          <label className="block text-xs font-medium text-cobalt-600 dark:text-cobalt-400 mb-1">
-            โปรตีน (กรัม)
-          </label>
-          <input
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <Field
+            label="โปรตีน"
+            icon="Beef"
+            unit="กรัม"
             type="text"
             inputMode="decimal"
             placeholder="0"
             value={proteinG}
             onChange={(e) => setProteinG(e.target.value)}
-            className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white tabular-nums focus:outline-none focus:ring-2 focus:ring-cobalt-500"
+            helperText="4 kcal / กรัม"
           />
-        </div>
 
-        {/* Carb */}
-        <div>
-          <label className="block text-xs font-medium text-amber-600 dark:text-amber-400 mb-1">
-            คาร์โบไฮเดรต (กรัม)
-          </label>
-          <input
+          <Field
+            label="คาร์โบไฮเดรต"
+            icon="Wheat"
+            unit="กรัม"
             type="text"
             inputMode="decimal"
             placeholder="0"
             value={carbG}
             onChange={(e) => setCarbG(e.target.value)}
-            className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white tabular-nums focus:outline-none focus:ring-2 focus:ring-cobalt-500"
+            helperText="4 kcal / กรัม"
           />
-        </div>
 
-        {/* Fat */}
-        <div>
-          <label className="block text-xs font-medium text-rose-600 dark:text-rose-400 mb-1">
-            ไขมัน (กรัม)
-          </label>
-          <input
+          <Field
+            label="ไขมัน"
+            icon="Droplet"
+            unit="กรัม"
             type="text"
             inputMode="decimal"
             placeholder="0"
             value={fatG}
             onChange={(e) => setFatG(e.target.value)}
-            className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white tabular-nums focus:outline-none focus:ring-2 focus:ring-cobalt-500"
+            helperText="9 kcal / กรัม"
           />
         </div>
-
-        {/* Manual Save button */}
-        <div className="flex items-end">
-          <button
-            type="button"
-            onClick={saveLog}
-            className="w-full h-[42px] rounded-xl bg-cobalt-600 hover:bg-cobalt-700 active:scale-95 text-white font-medium text-sm flex items-center justify-center gap-1.5 shadow-sm transition-all"
-          >
-            <Save className="w-4 h-4" />
-            <span>บันทึก</span>
-          </button>
-        </div>
       </div>
-    </div>
+
+      {/* Action Footer */}
+      <div className="pt-2 flex items-center justify-between">
+        <span className="text-[11px] text-[var(--text-muted)] flex items-center gap-1">
+          <Icon name="CloudCheck" size={13} className="text-emerald-500" />
+          <span>ระบบบันทึกข้อมูลให้อัตโนมัติขณะพิมพ์</span>
+        </span>
+
+        <Button
+          type="button"
+          onClick={saveLog}
+          variant="primary"
+          size="sm"
+          leftIcon={<Icon name="Check" size={14} />}
+          isLoading={saveStatus === 'saving'}
+        >
+          บันทึกทันที
+        </Button>
+      </div>
+    </Card>
   );
 }

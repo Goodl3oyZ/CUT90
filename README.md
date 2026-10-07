@@ -1,166 +1,93 @@
-# Cut 90 Planner 🥊
+# Cut 90 Planner - Private-Club Performance Logbook
 
-Production-ready, multi-user, mobile-first Progressive Web App (PWA) for 90-day fat-loss planning and daily tracking. Built with Next.js App Router, TypeScript, SQLite, Drizzle ORM, and Argon2id authentication.
+![Cut 90 Planner](/docs/screenshots/help-desktop-dark.png)
 
----
-
-## 🚀 Features
-
-- **Custom Authentication**: Pure Argon2id + sliding 30-day session cookies. Brute-force protection, rate limiting, CSRF validation. No BaaS or 3rd-party identity providers.
-- **Scientific Plan Engine**: Mifflin-St Jeor BMR & TDEE, 90-day daily calorie & macro targets (Protein 2.1g/kg, Fat 0.8g/kg, Carb remainder), safety calorie floors, 7-day status pills (`ahead`, `on_track`, `behind`), warnings, and recalibration checkpoints.
-- **PWA & Offline Queue**: Serwist service worker app shell caching, IndexedDB offline write queue with automatic background sync upon reconnection.
-- **Thai Language UI**: Thai copy for UI interactions, English code & comments.
-- **Deploy Ready**: Docker multi-stage build, docker-compose.yml with Caddy automatic HTTPS, and daily SQLite backup rotation.
+**Cut 90 Planner** is a production-ready, multi-user, mobile-first Progressive Web App (PWA) designed for 90-day fat-loss planning, daily tracking, and progress visualization. It combines scientific energy deficit formulas (Mifflin-St Jeor) with a restrained "private-club logbook" aesthetic, obsidian green-black dark theme, brushed brass accents, and full offline sync capabilities.
 
 ---
 
-## 🛠️ Stack
+## 📸 Interface Screenshots
 
-- **Framework**: Next.js 14 (App Router) + TypeScript Strict
-- **Database**: SQLite via LibSQL / better-sqlite3 (WAL mode, Foreign Keys ON) + Drizzle ORM
-- **Auth**: `@node-rs/argon2` + HttpOnly Lax session cookies
-- **Styling**: Tailwind CSS + Google Fonts (Barlow Condensed, DM Sans, Noto Sans Thai)
-- **Validation & Testing**: Zod, Vitest (Unit & API tests), Playwright (E2E smoke test)
-- **DevOps**: Docker, docker-compose, Caddy, Backup cron script
+| Desktop View (Dark) | Mobile View (Dark) |
+| :--- | :--- |
+| ![Desktop Help](/docs/screenshots/help-desktop-dark.png) | ![Mobile Help](/docs/screenshots/help-mobile-dark.png) |
+| ![Desktop Login](/docs/screenshots/login-desktop-dark.png) | ![Mobile Login](/docs/screenshots/login-mobile-dark.png) |
 
 ---
 
-## 💻 Local Development Setup
+## ✨ Key Features
 
-### 1. Installation & Environment
+* **Scientific 90-Day Math Engine**: Mifflin-St Jeor BMR/TDEE calculations, dynamic step-down deficit algorithm, and safety ceiling warnings (1.0% body weight/week).
+* **Private-Club Aesthetic**: Obsidian green-black dark theme, brushed brass metallic accents, Bodoni Moda display headings, Plus Jakarta Sans UI, and Noto Sans Thai typography.
+* **100% WCAG AA Contrast Compliant**: Automated script-verified contrast ratios (> 4.5:1 body, > 3:1 UI).
+* **Responsive Layout**: Mobile-first bottom tab bar + desktop left rail navigation (`SideRail`) with two-column dashboard.
+* **Offline-First PWA**: Serwist Service Worker caching + IndexedDB (`idb`) queue for automatic re-sync when network reconnects.
+* **Understandable Thai UI**: Plain Thai status sentences, remaining hints (`"เหลือ 42g"`), jargon replacement, popovers for BMR/TDEE, and dedicated `/help` center.
+* **Data Security & Privacy**: Argon2id password hashing, HttpOnly session cookies, CSRF header validation, and strict SQL `user_id` multi-tenant data isolation.
+
+---
+
+## ⚡ Quick Start (Local Development)
+
+### Prerequisites
+* Node.js v20+ or v24+
+* npm v10+
+
+### Installation & Execution
 ```bash
-git clone <repo-url>
-cd Cut90_Planner
-cp .env.example .env
+# 1. Clone repository
+git clone https://github.com/Goodl3oyZ/CUT90.git
+cd CUT90
+
+# 2. Install dependencies
 npm install
-```
 
-### 2. Database Migration & Seeding
-```bash
-# Run database migrations
+# 3. Apply database migrations & seed demo user
 npm run db:migrate
-
-# Seed demo user ("demo" / "demo1234Password!") and 7-day weight logs
 npm run seed
-```
 
-### 3. Run Development Server
-```bash
+# 4. Start local development server
 npm run dev
 ```
-Open `http://localhost:3000` in your browser.
 
-### 4. Run Test Suites
-```bash
-# Unit & API Integration tests
-npm run test
-
-# E2E Smoke test
-npm run test:e2e
-```
+Open [http://localhost:3000](http://localhost:3000) in your browser.  
+Demo Credentials: **Username**: `demo` | **Password**: `demo1234Password!`
 
 ---
 
-## 🛠️ User Management CLI
+## 📋 Available Scripts Table
 
-```bash
-# List all registered users
-npm run user:list
-
-# Reset user password CLI (generates random 12-character password)
-npm run user:reset-password -- <username>
-```
-
----
-
-## 🐳 Production VPS Deployment (Docker + Caddy)
-
-### 1. Prerequisites
-- Linux VPS (Ubuntu/Debian) with Docker and Docker Compose installed.
-- Domain name pointed (DNS A/AAAA record) to your VPS IP address.
-
-### 2. Environment Configuration
-Create `.env` on your VPS:
-```env
-SESSION_COOKIE_NAME=cut90_session
-ALLOW_SIGNUP=true
-INVITE_CODE=SecretInvite123
-DATABASE_PATH=/data/app.db
-APP_ORIGIN=https://cut90.yourdomain.com
-APP_DOMAIN=cut90.yourdomain.com
-```
-
-### 3. Start Containers
-```bash
-docker compose up -d --build
-```
-Caddy will automatically acquire a free TLS certificate via Let's Encrypt / ZeroSSL.
-
-### 4. Close Signups After Initial Setup
-After creating user accounts, set `ALLOW_SIGNUP=false` in `.env` and reload:
-```bash
-docker compose restart app
-```
+| Command | Action |
+| :--- | :--- |
+| `npm run dev` | Starts Next.js development server on `http://localhost:3000` |
+| `npm run build` | Builds production bundle |
+| `npm run test` | Runs Vitest unit & integration test suite (12 tests) |
+| `npm run lint` | Checks ESLint rule compliance |
+| `npm run db:generate` | Generates Drizzle database migrations |
+| `npm run db:migrate` | Applies database migrations |
+| `npm run seed` | Seeds default administrator/demo user account |
+| `npx tsx scripts/screenshots.ts` | Captures Playwright light & dark screenshots |
 
 ---
 
-## ☁️ Alternative: Deployment Behind Cloudflare Tunnel (No Public IP)
+## 🔑 Environment Variables Table
 
-If your home server or VPS does not have a public IPv4 address:
-
-1. Install Cloudflare Tunnel (`cloudflared`).
-2. Run `cloudflared tunnel create cut90-tunnel`.
-3. Configure `~/.cloudflared/config.yml`:
-   ```yaml
-   tunnel: <tunnel-id>
-   credentials-file: /root/.cloudflared/<tunnel-id>.json
-   ingress:
-     - hostname: cut90.yourdomain.com
-       service: http://localhost:3000
-     - service: http_status:404
-   ```
-4. Run `docker compose up -d app` (without Caddy) and run `cloudflared tunnel run cut90-tunnel`.
+| Key | Default | Purpose |
+| :--- | :--- | :--- |
+| `DATABASE_URL` | `file:data/cut90.db` | SQLite database connection string |
+| `SESSION_SECRET` | `cut90_super_secret...` | 32-character string for cookie signatures |
+| `ALLOW_SIGNUPS` | `true` | Set `false` to close public registration |
+| `INVITE_CODE` | `club90_vip` | Optional registration invitation code |
 
 ---
 
-## 💾 Database Backup & Restore Instructions
+## 📚 Documentation Index
 
-### Automatic Daily Backup Script
-Execute `scripts/backup.sh` via host cron or cron container daily:
-```bash
-chmod +x scripts/backup.sh
-./scripts/backup.sh
-```
-This script creates a point-in-time SQLite online backup (`sqlite3 .backup`) in `/data/backups` and retains the last 14 daily copies.
-
-### Restore Database
-To restore from a backup file:
-```bash
-# 1. Stop the application container
-docker compose stop app
-
-# 2. Restore database file
-cp /data/backups/app_backup_20261001_000000.db /data/app.db
-
-# 3. Start application container
-docker compose start app
-```
-
----
-
-## 📱 Installing PWA on Mobile Devices
-
-### iOS (Safari)
-1. Open `https://cut90.yourdomain.com` in Safari.
-2. Tap the **Share** icon (square with upward arrow).
-3. Select **Add to Home Screen** (เพิ่มไปยังหน้าจอโฮม).
-
-### Android (Chrome / Edge)
-1. Open `https://cut90.yourdomain.com` in Chrome.
-2. Tap the **3 dots menu** top right.
-3. Select **Install app** or **Add to Home Screen** (ติดตั้งแอป / เพิ่มลงในหน้าจอโฮม).
-
----
-
-## 📄 License
-MIT License.
+* 🎨 [Design System Documentation](/docs/DESIGN_SYSTEM.md) - Palette, contrast verification, typography scale, icon map.
+* 📐 [Mathematical Formulas & Physiology](/docs/FORMULAS.md) - Mifflin-St Jeor worked examples, 7700 kcal rule.
+* 🇹🇭 [User Guide (ภาษาไทย)](/docs/USER_GUIDE.th.md) - End-user manual, daily routine, PWA installation.
+* 🏗️ [System Architecture Specification](/docs/ARCHITECTURE.md) - Folder map, request flow, ER diagram, PWA cache.
+* 🔌 [REST API Reference](/docs/API.md) - 13 endpoint specifications with request/response samples.
+* 🔒 [Security & Threat Mitigation](/docs/SECURITY.md) - Argon2id, CSRF, rate limiting, data isolation.
+* 🚀 [Production Deployment Guide](/docs/DEPLOY.md) - VPS, Docker Compose, Caddy TLS, backup/restore.
+* 🔍 [UI Audit Report](/docs/UI_AUDIT.md) - Audit findings and Before/After verification.

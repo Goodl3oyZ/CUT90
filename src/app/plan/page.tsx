@@ -3,8 +3,10 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Header } from '@/components/layout/Header';
-import { BottomNav } from '@/components/layout/BottomNav';
+import { NavLayout } from '@/components/ui/NavLayout';
 import { PlanTable } from '@/components/plan/PlanTable';
+import { Skeleton } from '@/components/ui/Skeleton';
+import { Icon } from '@/components/ui/Icon';
 import {
   calculatePlan,
   DailyLogInput,
@@ -13,7 +15,6 @@ import {
   PlanDay,
   UserProfile,
 } from '@/lib/plan';
-import { Loader2 } from 'lucide-react';
 
 export default function PlanPage() {
   const router = useRouter();
@@ -73,24 +74,31 @@ export default function PlanPage() {
 
   if (loading || planDays.length === 0) {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-[#0b1319] flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-cobalt-600" />
-      </div>
+      <NavLayout>
+        <Header />
+        <main className="max-w-5xl mx-auto px-4 sm:px-6 pt-6 space-y-6">
+          <Skeleton variant="text" className="h-8 w-48" />
+          <Skeleton variant="card" className="h-96" />
+        </main>
+      </NavLayout>
     );
   }
 
   return (
-    <div className="min-h-screen pb-24 bg-slate-50 dark:bg-[#0b1319]">
+    <NavLayout>
       <Header />
 
-      <main className="max-w-md mx-auto px-4 pt-4 space-y-4">
-        <div className="flex items-center justify-between">
-          <h1 className="font-brand font-bold text-2xl uppercase tracking-wider text-slate-900 dark:text-white">
-            แผนผัง 90 วัน
-          </h1>
-          <span className="text-xs text-slate-500 font-mono">
-            เขียว = ±10% | ส้ม = เกิน/ขาด
-          </span>
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 pt-6 space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[var(--border-color)] pb-4">
+          <div>
+            <h1 className="font-display font-bold text-2xl uppercase tracking-wider text-[var(--text-primary)] flex items-center gap-2">
+              <Icon name="LayoutGrid" size={24} className="text-brass-400" />
+              <span>ตารางแผนผัง 90 วัน (Plan Schedule)</span>
+            </h1>
+            <p className="text-xs text-[var(--text-secondary)] mt-1">
+              แผนคำนวณโภชนาการรายวัน ปรับลดอย่างเป็นระบบตามอัตราการผลาญไขมัน
+            </p>
+          </div>
         </div>
 
         <PlanTable
@@ -99,8 +107,6 @@ export default function PlanPage() {
           todayDayNumber={todayDayNumber}
         />
       </main>
-
-      <BottomNav />
-    </div>
+    </NavLayout>
   );
 }

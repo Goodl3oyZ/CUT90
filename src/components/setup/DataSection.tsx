@@ -1,7 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { Download, Upload, AlertCircle, CheckCircle } from 'lucide-react';
+import { Card } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { Icon } from '@/components/ui/Icon';
 
 export function DataSection() {
   const [status, setStatus] = useState<string | null>(null);
@@ -56,37 +58,37 @@ export function DataSection() {
   };
 
   return (
-    <div className="bg-white dark:bg-[#15202b] rounded-2xl p-4 sm:p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
-      <h3 className="font-semibold text-sm text-slate-900 dark:text-white uppercase tracking-wider">
-        สำรองและกู้คืนข้อมูล (JSON Export / Import)
-      </h3>
+    <Card variant="default" padding="md" className="space-y-4">
+      <h2 className="font-display font-bold text-base text-[var(--text-primary)] flex items-center gap-2">
+        <Icon name="Download" size={18} className="text-brass-400" />
+        <span>สำรองและกู้คืนข้อมูล (JSON Backup)</span>
+      </h2>
 
       {status && (
-        <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-900 text-xs font-medium text-slate-700 dark:text-slate-300 flex items-center gap-2">
-          {status.includes('สำเร็จ') || status.includes('เรียบร้อย') ? (
-            <CheckCircle className="w-4 h-4 text-emerald-500" />
-          ) : (
-            <AlertCircle className="w-4 h-4 text-amber-500" />
-          )}
+        <div className="p-3.5 rounded-xl bg-[var(--bg-surface-elevated)] border border-[var(--border-color)] text-xs font-medium text-[var(--text-primary)] flex items-center gap-2">
+          <Icon
+            name={status.includes('สำเร็จ') || status.includes('เรียบร้อย') ? 'Check' : 'AlertCircle'}
+            size={16}
+            className="text-brass-400"
+          />
           <span>{status}</span>
         </div>
       )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {/* Export */}
-        <button
-          onClick={handleExport}
+        <Button
           type="button"
-          className="h-11 px-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 text-slate-900 dark:text-white font-medium text-sm flex items-center justify-center gap-2 transition-all"
+          onClick={handleExport}
+          variant="secondary"
+          size="md"
+          leftIcon={<Icon name="Download" size={16} />}
         >
-          <Download className="w-4 h-4 text-cobalt-500" />
-          <span>ส่งออกข้อมูล (JSON)</span>
-        </button>
+          ส่งออกข้อมูล (JSON Export)
+        </Button>
 
-        {/* Import */}
-        <label className="h-11 px-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 text-slate-900 dark:text-white font-medium text-sm flex items-center justify-center gap-2 transition-all cursor-pointer">
-          <Upload className="w-4 h-4 text-cobalt-500" />
-          <span>นำเข้าข้อมูล (JSON)</span>
+        <label className="inline-flex items-center justify-center font-medium rounded-xl transition-all duration-150 bg-[var(--bg-surface-elevated)] hover:bg-[var(--bg-surface-hover)] text-[var(--text-primary)] border border-[var(--border-color)] h-11 px-4 text-sm gap-2 cursor-pointer select-none">
+          <Icon name="Upload" size={16} className="text-brass-400" />
+          <span>นำเข้าข้อมูล (JSON Import)</span>
           <input
             type="file"
             accept=".json"
@@ -95,6 +97,6 @@ export function DataSection() {
           />
         </label>
       </div>
-    </div>
+    </Card>
   );
 }

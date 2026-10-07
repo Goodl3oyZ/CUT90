@@ -1,35 +1,119 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Cut 90 Planner – API Docs</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css" />
   <style>
-    html { box-sizing: border-box; overflow-y: scroll; }
-    *, *::before, *::after { box-sizing: inherit; }
-    body { margin: 0; background: #1a1a2e; }
+    html {
+      box-sizing: border-box;
+      overflow-y: scroll;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: inherit;
+    }
+
+    body {
+      margin: 0;
+      background: #1a1a2e;
+    }
+
     /* Hide Swagger's default topbar completely */
-    .swagger-ui .topbar { display: none !important; }
+    .swagger-ui .topbar {
+      display: none !important;
+    }
+
     /* Make Swagger UI body dark */
-    .swagger-ui { background: #1a1a2e; color: #e2e8f0; }
-    .swagger-ui .info .title { color: #f1f5f9; }
-    .swagger-ui .info p, .swagger-ui .info li { color: #cbd5e1; }
-    .swagger-ui .scheme-container { background: #1e293b; box-shadow: none; border-bottom: 1px solid #334155; }
-    .swagger-ui .opblock-tag { color: #f1f5f9 !important; border-bottom-color: #334155 !important; }
-    .swagger-ui .opblock-tag small { color: #94a3b8 !important; }
-    .swagger-ui .opblock { background: #0f172a; border-color: #334155; }
-    .swagger-ui .opblock .opblock-summary { border-color: #334155; }
-    .swagger-ui .opblock-description-wrapper p { color: #cbd5e1; }
-    .swagger-ui .model-box, .swagger-ui section.models { background: #0f172a; }
-    .swagger-ui .model-title { color: #f1f5f9; }
-    .swagger-ui table thead tr td, .swagger-ui table thead tr th { color: #cbd5e1; border-bottom-color: #334155; }
-    .swagger-ui .response-col_status { color: #f1f5f9; }
-    .swagger-ui .parameter__name { color: #f1f5f9; }
-    .swagger-ui .parameter__type { color: #94a3b8; }
-    .swagger-ui input[type=text], .swagger-ui textarea, .swagger-ui select { background: #1e293b; color: #f1f5f9; border-color: #475569; }
-    .swagger-ui .btn { color: #f1f5f9; }
-    .swagger-ui .copy-to-clipboard { filter: invert(1); }
+    .swagger-ui {
+      background: #1a1a2e;
+      color: #e2e8f0;
+    }
+
+    .swagger-ui .info .title {
+      color: #f1f5f9;
+    }
+
+    .swagger-ui .info p,
+    .swagger-ui .info li {
+      color: #cbd5e1;
+    }
+
+    .swagger-ui .scheme-container {
+      background: #1e293b;
+      box-shadow: none;
+      border-bottom: 1px solid #334155;
+    }
+
+    .swagger-ui .opblock-tag {
+      color: #f1f5f9 !important;
+      border-bottom-color: #334155 !important;
+    }
+
+    .swagger-ui .opblock-tag small {
+      color: #94a3b8 !important;
+    }
+
+    .swagger-ui .opblock {
+      background: #0f172a;
+      border-color: #334155;
+    }
+
+    .swagger-ui .opblock .opblock-summary {
+      border-color: #334155;
+    }
+
+    .swagger-ui .opblock-description-wrapper p {
+      color: #cbd5e1;
+    }
+
+    .swagger-ui .model-box,
+    .swagger-ui section.models {
+      background: #0f172a;
+    }
+
+    .swagger-ui .model-title {
+      color: #f1f5f9;
+    }
+
+    .swagger-ui table thead tr td,
+    .swagger-ui table thead tr th {
+      color: #cbd5e1;
+      border-bottom-color: #334155;
+    }
+
+    .swagger-ui .response-col_status {
+      color: #f1f5f9;
+    }
+
+    .swagger-ui .parameter__name {
+      color: #f1f5f9;
+    }
+
+    .swagger-ui .parameter__type {
+      color: #94a3b8;
+    }
+
+    .swagger-ui input[type=text],
+    .swagger-ui textarea,
+    .swagger-ui select {
+      background: #1e293b;
+      color: #f1f5f9;
+      border-color: #475569;
+    }
+
+    .swagger-ui .btn {
+      color: #f1f5f9;
+    }
+
+    .swagger-ui .copy-to-clipboard {
+      filter: invert(1);
+    }
+
     .back-link {
       display: inline-flex;
       align-items: center;
@@ -40,19 +124,45 @@
       color: #60a5fa;
       text-decoration: none;
     }
-    .back-link:hover { text-decoration: underline; color: #93bbfd; }
+
+    .back-link:hover {
+      text-decoration: underline;
+      color: #93bbfd;
+    }
+
     /* Brand colors for HTTP method badges */
-    .swagger-ui .opblock.opblock-get .opblock-summary-method { background: #2563eb !important; }
-    .swagger-ui .opblock.opblock-post .opblock-summary-method { background: #059669 !important; }
-    .swagger-ui .opblock.opblock-put .opblock-summary-method { background: #d97706 !important; }
-    .swagger-ui .opblock.opblock-delete .opblock-summary-method { background: #dc2626 !important; }
-    .swagger-ui .btn.execute { background: #2563eb !important; border-color: #2563eb !important; }
+    .swagger-ui .opblock.opblock-get .opblock-summary-method {
+      background: #2563eb !important;
+    }
+
+    .swagger-ui .opblock.opblock-post .opblock-summary-method {
+      background: #059669 !important;
+    }
+
+    .swagger-ui .opblock.opblock-put .opblock-summary-method {
+      background: #d97706 !important;
+    }
+
+    .swagger-ui .opblock.opblock-delete .opblock-summary-method {
+      background: #dc2626 !important;
+    }
+
+    .swagger-ui .btn.execute {
+      background: #2563eb !important;
+      border-color: #2563eb !important;
+    }
+
     /* Filter input */
-    .swagger-ui .filter .operation-filter-input { background: #1e293b; color: #f1f5f9; border-color: #475569; }
+    .swagger-ui .filter .operation-filter-input {
+      background: #1e293b;
+      color: #f1f5f9;
+      border-color: #475569;
+    }
   </style>
 </head>
+
 <body>
-  <a class="back-link" href="/">← กลับหน้าหลัก</a>
+
   <div id="swagger-ui"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
@@ -80,4 +190,5 @@
     };
   </script>
 </body>
+
 </html>

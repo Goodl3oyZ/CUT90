@@ -3,10 +3,14 @@
 import { useState, useEffect, useCallback, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Header } from '@/components/layout/Header';
-import { BottomNav } from '@/components/layout/BottomNav';
+import { NavLayout } from '@/components/ui/NavLayout';
 import { StatusCard } from '@/components/today/StatusCard';
 import { MacroBars } from '@/components/today/MacroBars';
 import { LogForm } from '@/components/today/LogForm';
+import { Card } from '@/components/ui/Card';
+import { IconButton } from '@/components/ui/IconButton';
+import { Skeleton } from '@/components/ui/Skeleton';
+import { Icon } from '@/components/ui/Icon';
 import {
   calculatePlan,
   calculateStatus,
@@ -17,7 +21,6 @@ import {
   StatusCardData,
   UserProfile,
 } from '@/lib/plan';
-import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
@@ -73,7 +76,7 @@ function TodayContent() {
       const calculatedPlan = calculatePlan(userProf);
       setPlanDays(calculatedPlan);
 
-      // Determine initial day number: check searchParam ?day=N, otherwise compute from today's date
+      // Determine day number
       const dayParam = searchParams.get('day');
       if (dayParam) {
         const parsed = parseInt(dayParam, 10);
@@ -86,7 +89,7 @@ function TodayContent() {
         setCurrentDayNumber(calculatedToday ?? 1);
       }
 
-      // Compute 7-day average status card
+      // Compute 7-day status card
       const status = calculateStatus(loadedLogs, calculatedPlan);
       setStatusData(status);
     } catch (e) {
@@ -102,9 +105,16 @@ function TodayContent() {
 
   if (loading || !profile || planDays.length === 0) {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-[#0b1319] flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-cobalt-600" />
-      </div>
+      <NavLayout>
+        <Header />
+        <main className="max-w-5xl mx-auto px-4 pt-6 space-y-6">
+          <Skeleton variant="card" className="h-16" />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Skeleton variant="card" className="h-64" />
+            <Skeleton variant="card" className="h-64" />
+          </div>
+        </main>
+      </NavLayout>
     );
   }
 
@@ -122,66 +132,84 @@ function TodayContent() {
   };
 
   return (
-    <div className="min-h-screen pb-24 bg-slate-50 dark:bg-[#0b1319]">
+    <NavLayout>
       <Header dayNumber={currentDayNumber} />
 
-      <main className="max-w-md mx-auto px-4 pt-4 space-y-4">
-        {/* Date Navigation Header */}
-        <div className="bg-white dark:bg-[#15202b] rounded-2xl p-4 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
-          <button
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 pt-6 space-y-6">
+        {/* Date Selector Header */}
+        <Card variant="default" padding="sm" className="flex items-center justify-between">
+          <IconButton
+            ariaLabel="วันก่อนหน้า"
             onClick={() => setCurrentDayNumber((prev) => Math.max(1, prev - 1))}
             disabled={currentDayNumber <= 1}
-            className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-300 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-100 transition-colors"
-            aria-label="วันก่อนหน้า"
+            variant="secondary"
+            size="md"
           >
-            <ChevronLeft className="w-5 h-5" />
-          </button>
+            <Icon name="ChevronLeft" size={20} />
+          </IconButton>
 
           <div className="text-center">
-            <h2 className="font-brand font-bold text-xl text-slate-900 dark:text-white uppercase tracking-wide">
-              วัน {currentDayNumber} จาก 90 วัน
-            </h2>
-            <p className="text-xs font-mono text-slate-500 dark:text-slate-400">
+            <h1 className="font-display font-bold text-lg sm:text-xl text-[var(--text-primary)] uppercase tracking-wide flex items-center justify-center gap-2">
+              <span>วัน {currentDayNumber} จาก 90 วัน</span>
+              {currentDayNumber === getDayForDate(profile.startDate, getTodayStr()) && (
+                <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full bg-brass-400 text-obsidian-950">
+                  วันนี้
+                </span>
+              )}
+            </h1>
+            <p className="text-xs font-mono text-[var(--text-secondary)] mt-0.5">
               {currentPlanDay?.date}
             </p>
           </div>
 
-          <button
+          <IconButton
+            ariaLabel="วันถัดไป"
             onClick={() => setCurrentDayNumber((prev) => Math.min(90, prev + 1))}
             disabled={currentDayNumber >= 90}
-            className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-300 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-100 transition-colors"
-            aria-label="วันถัดไป"
+            variant="secondary"
+            size="md"
           >
-            <ChevronRight className="w-5 h-5" />
-          </button>
+            <Icon name="ChevronRight" size={20} />
+          </IconButton>
+        </Card>
+
+        {/* Responsive Desktop Two-Column Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          {/* Left Column (Hero Status & Nutrition Targets) */}
+          <div className="lg:col-span-6 space-y-6">
+            {statusData && (
+              <StatusCard
+                data={statusData}
+                startWeightKg={profile.startWeightKg}
+                goalWeightKg={profile.goalWeightKg}
+                currentDayNumber={currentDayNumber}
+              />
+            )}
+
+            {currentPlanDay && (
+              <MacroBars
+                targetKcal={currentPlanDay.targetKcal}
+                targetProteinG={currentPlanDay.targetProteinG}
+                targetCarbG={currentPlanDay.targetCarbG}
+                targetFatG={currentPlanDay.targetFatG}
+                actualProteinG={currentLog?.proteinG ?? 0}
+                actualCarbG={currentLog?.carbG ?? 0}
+                actualFatG={currentLog?.fatG ?? 0}
+              />
+            )}
+          </div>
+
+          {/* Right Column (Daily Logging Form) */}
+          <div className="lg:col-span-6">
+            <LogForm
+              day={currentDayNumber}
+              initialLog={currentLog}
+              onSaveSuccess={handleLogSaved}
+            />
+          </div>
         </div>
-
-        {/* 7-Day Status Card */}
-        {statusData && <StatusCard data={statusData} />}
-
-        {/* Macro Progress Bars */}
-        {currentPlanDay && (
-          <MacroBars
-            targetKcal={currentPlanDay.targetKcal}
-            targetProteinG={currentPlanDay.targetProteinG}
-            targetCarbG={currentPlanDay.targetCarbG}
-            targetFatG={currentPlanDay.targetFatG}
-            actualProteinG={currentLog?.proteinG ?? 0}
-            actualCarbG={currentLog?.carbG ?? 0}
-            actualFatG={currentLog?.fatG ?? 0}
-          />
-        )}
-
-        {/* Daily Log Form */}
-        <LogForm
-          day={currentDayNumber}
-          initialLog={currentLog}
-          onSaveSuccess={handleLogSaved}
-        />
       </main>
-
-      <BottomNav />
-    </div>
+    </NavLayout>
   );
 }
 
@@ -189,8 +217,8 @@ export default function TodayPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-slate-50 dark:bg-[#0b1319] flex items-center justify-center">
-          <Loader2 className="w-8 h-8 animate-spin text-cobalt-600" />
+        <div className="min-h-screen bg-[var(--bg-main)] flex items-center justify-center">
+          <Skeleton variant="circle" className="w-12 h-12" />
         </div>
       }
     >

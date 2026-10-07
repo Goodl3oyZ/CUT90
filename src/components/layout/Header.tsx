@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Sun, Moon, LogOut, Flame } from 'lucide-react';
+import { SunMoon, LogOut, Flame, ShieldCheck } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { clearOfflineQueue } from '@/lib/offline/queue';
+import { IconButton } from '@/components/ui/IconButton';
 
 interface HeaderProps {
   username?: string;
@@ -12,7 +13,7 @@ interface HeaderProps {
 
 export function Header({ username, dayNumber }: HeaderProps) {
   const router = useRouter();
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(true);
 
   useEffect(() => {
     const isDark =
@@ -50,44 +51,49 @@ export function Header({ username, dayNumber }: HeaderProps) {
   };
 
   return (
-    <header className="bg-white dark:bg-[#15202b] border-b border-slate-200 dark:border-slate-800 sticky top-0 z-40 px-4 py-3">
-      <div className="max-w-md mx-auto flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-cobalt-600 flex items-center justify-center text-white font-brand font-bold text-lg shadow-sm">
-            <Flame className="w-5 h-5 fill-current text-amber-300" />
+    <header className="bg-[var(--bg-surface)] border-b border-[var(--border-color)] sticky top-0 z-30 px-4 py-3 lg:pl-72">
+      <div className="max-w-5xl mx-auto flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-brass-400 text-obsidian-950 flex items-center justify-center font-display font-bold text-lg shadow-brass-glow">
+            <Flame className="w-5 h-5 fill-current" />
           </div>
           <div>
-            <span className="font-brand font-bold text-lg tracking-wider text-slate-900 dark:text-white uppercase">
-              CUT 90
-            </span>
-            {dayNumber && (
-              <span className="ml-2 text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
-                วัน {dayNumber}/90
+            <div className="flex items-center gap-2">
+              <span className="font-display font-bold text-lg tracking-wider text-[var(--text-primary)]">
+                CUT 90 PLANNER
               </span>
-            )}
+              {dayNumber && (
+                <span className="text-xs font-mono font-semibold px-2.5 py-0.5 rounded-full bg-brass-400/15 text-brass-400 border border-brass-400/30">
+                  DAY {dayNumber}/90
+                </span>
+              )}
+            </div>
+            <p className="text-[10px] text-[var(--text-secondary)] font-mono hidden sm:block">
+              Private-Club Fat-Loss Performance Logbook
+            </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <button
+        <div className="flex items-center gap-1">
+          <IconButton
+            ariaLabel="เปลี่ยนธีม (Light/Dark)"
             onClick={toggleDarkMode}
-            className="w-10 h-10 rounded-lg flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-            aria-label="เปลี่ยนธีม"
-            type="button"
+            variant="ghost"
+            size="md"
           >
-            {darkMode ? <Sun className="w-5 h-5 text-amber-400" /> : <Moon className="w-5 h-5 text-slate-600" />}
-          </button>
+            <SunMoon className="w-5 h-5 text-brass-400" />
+          </IconButton>
 
           {username && (
-            <button
+            <IconButton
+              ariaLabel="ออกจากระบบ"
               onClick={handleLogout}
-              className="w-10 h-10 rounded-lg flex items-center justify-center text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors"
-              title="ออกจากระบบ"
-              aria-label="ออกจากระบบ"
-              type="button"
+              variant="ghost"
+              size="md"
+              className="hover:text-rose-400"
             >
               <LogOut className="w-5 h-5" />
-            </button>
+            </IconButton>
           )}
         </div>
       </div>

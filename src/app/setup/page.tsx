@@ -3,10 +3,14 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Header } from '@/components/layout/Header';
-import { BottomNav } from '@/components/layout/BottomNav';
+import { NavLayout } from '@/components/ui/NavLayout';
 import { ProfileForm } from '@/components/setup/ProfileForm';
 import { DataSection } from '@/components/setup/DataSection';
 import { AccountSection } from '@/components/setup/AccountSection';
+import { Card } from '@/components/ui/Card';
+import { Skeleton } from '@/components/ui/Skeleton';
+import { Icon } from '@/components/ui/Icon';
+import { Popover } from '@/components/ui/Popover';
 import {
   calculatePlan,
   calculatePlanSummary,
@@ -21,7 +25,6 @@ import {
   recalibrateProfile,
   UserProfile,
 } from '@/lib/plan';
-import { Loader2, AlertTriangle, ShieldCheck, Flame, Scale, FileText } from 'lucide-react';
 import Link from 'next/link';
 
 export default function SetupPage() {
@@ -162,80 +165,126 @@ export default function SetupPage() {
 
   if (loading || !profile || !summary || !warnings) {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-[#0b1319] flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-cobalt-600" />
-      </div>
+      <NavLayout>
+        <Header />
+        <main className="max-w-5xl mx-auto px-4 sm:px-6 pt-6 space-y-6">
+          <Skeleton variant="text" className="h-8 w-48" />
+          <Skeleton variant="card" className="h-48" />
+        </main>
+      </NavLayout>
     );
   }
 
   return (
-    <div className="min-h-screen pb-24 bg-slate-50 dark:bg-[#0b1319]">
+    <NavLayout>
       <Header />
 
-      <main className="max-w-md mx-auto px-4 pt-4 space-y-4">
-        <h1 className="font-brand font-bold text-2xl uppercase tracking-wider text-slate-900 dark:text-white">
-          ตั้งค่าและภาพรวมแผน
-        </h1>
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 pt-6 space-y-6">
+        <div className="border-b border-[var(--border-color)] pb-4">
+          <h1 className="font-display font-bold text-2xl uppercase tracking-wider text-[var(--text-primary)] flex items-center gap-2">
+            <Icon name="SlidersHorizontal" size={24} className="text-brass-400" />
+            <span>ตั้งค่าและภาพรวมแผนผัง (Plan Setup)</span>
+          </h1>
+          <p className="text-xs text-[var(--text-secondary)] mt-1">
+            ปรับแต่งค่าทางกายภาพ ตรวจสอบการแจ้งเตือนความปลอดภัย สำรองข้อมูล และจัดการบัญชี
+          </p>
+        </div>
 
         {/* Plan Summary Card */}
-        <div className="bg-white dark:bg-[#15202b] rounded-2xl p-4 sm:p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
-          <h3 className="font-semibold text-sm text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
-            <Flame className="w-4 h-4 text-cobalt-500" />
-            <span>สรุปแผนพลังงาน 90 วัน</span>
-          </h3>
+        <Card variant="default" padding="md" className="space-y-4">
+          <div className="flex items-center justify-between border-b border-[var(--border-color)] pb-3">
+            <h2 className="font-display font-bold text-base text-[var(--text-primary)] flex items-center gap-2">
+              <Icon name="Flame" size={18} className="text-brass-400" />
+              <span>สรุปแผนพลังงาน 90 วัน</span>
+            </h2>
+            <span className="text-xs font-mono text-brass-400 font-semibold">
+              Mifflin-St Jeor Formula
+            </span>
+          </div>
 
-          <div className="grid grid-cols-2 gap-3 text-xs tabular-nums">
-            <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800">
-              <div className="text-slate-400">BMR เริ่มต้น</div>
-              <div className="font-brand text-lg font-bold text-slate-900 dark:text-white">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs tabular-nums">
+            <div className="p-3.5 rounded-xl bg-[var(--bg-surface-elevated)] border border-[var(--border-color)] space-y-1">
+              <div className="flex items-center justify-between text-[var(--text-secondary)]">
+                <span>BMR เริ่มต้น</span>
+                <Popover
+                  title="BMR (Basal Metabolic Rate)"
+                  description="พลังงานขั้นต่ำที่ร่างกายใช้เพื่อการมีชีวิตรอดในแต่ละวันขณะพัก"
+                  glossaryAnchor="bmr"
+                />
+              </div>
+              <div className="font-mono text-lg font-bold text-[var(--text-primary)]">
                 {summary.bmrStart} kcal
               </div>
             </div>
 
-            <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800">
-              <div className="text-slate-400">TDEE เริ่มต้น</div>
-              <div className="font-brand text-lg font-bold text-slate-900 dark:text-white">
+            <div className="p-3.5 rounded-xl bg-[var(--bg-surface-elevated)] border border-[var(--border-color)] space-y-1">
+              <div className="flex items-center justify-between text-[var(--text-secondary)]">
+                <span>TDEE เริ่มต้น</span>
+                <Popover
+                  title="TDEE (Total Daily Energy Expenditure)"
+                  description="พลังงานที่เผาผลาญรวมทั้งหมดต่อวัน รวมกิจกรรมและการทำชีวิตประจำวัน"
+                  glossaryAnchor="tdee"
+                />
+              </div>
+              <div className="font-mono text-lg font-bold text-[var(--text-primary)]">
                 {summary.tdeeStart} kcal
               </div>
             </div>
 
-            <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800">
-              <div className="text-slate-400">แคลอรี่วันแรก → วันสุดท้าย</div>
-              <div className="font-brand text-base font-bold text-cobalt-600 dark:text-cobalt-400">
+            <div className="p-3.5 rounded-xl bg-[var(--bg-surface-elevated)] border border-[var(--border-color)] space-y-1">
+              <div className="flex items-center justify-between text-[var(--text-secondary)]">
+                <span>แคลอรี่ วันที่ 1 → 90</span>
+                <Popover
+                  title="Deficit & Step Down"
+                  description="ปริมาณพลังงานที่รับประทานจะค่อยๆ ลดลงตามน้ำหนักตัวที่ลดลงเพื่อรักษา Deficit"
+                  glossaryAnchor="deficit"
+                />
+              </div>
+              <div className="font-mono text-base font-bold text-brass-400">
                 {summary.kcalDay1} → {summary.kcalDay90} kcal
               </div>
             </div>
 
-            <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800">
-              <div className="text-slate-400">อัตราลดรายสัปดาห์</div>
-              <div className="font-brand text-base font-bold text-emerald-600 dark:text-emerald-400">
-                {summary.weeklyDropKg} kg ({summary.weeklyDropPercentBw}%/wk)
+            <div className="p-3.5 rounded-xl bg-[var(--bg-surface-elevated)] border border-[var(--border-color)] space-y-1">
+              <div className="flex items-center justify-between text-[var(--text-secondary)]">
+                <span>อัตราลด/สัปดาห์</span>
+                <Popover
+                  title="Weekly Rate"
+                  description="อัตราการลดน้ำหนักที่ปลอดภัยที่สุดอยู่ระหว่าง 0.5% - 1.0% ของน้ำหนักตัวต่อสัปดาห์"
+                  glossaryAnchor="weekly-rate"
+                />
+              </div>
+              <div className="font-mono text-base font-bold text-emerald-500">
+                {summary.weeklyDropKg} kg ({summary.weeklyDropPercentBw}%)
               </div>
             </div>
           </div>
-        </div>
+        </Card>
 
         {/* Warnings Card */}
         {(warnings.isAggressive || warnings.isNearCeiling || warnings.isFloorHit) && (
-          <div className="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-4 text-xs space-y-2 text-amber-800 dark:text-amber-300">
-            <div className="font-bold flex items-center gap-1.5 uppercase tracking-wide">
-              <AlertTriangle className="w-4 h-4 text-amber-500" />
-              <span>คำเตือนข้อควรระวังของแผน</span>
+          <div className="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-4 text-xs space-y-2 text-amber-700 dark:text-amber-300">
+            <div className="font-bold flex items-center gap-2 uppercase tracking-wide text-sm">
+              <Icon name="AlertTriangle" size={16} className="text-amber-500" />
+              <span>คำเตือนประเมินความปลอดภัยของแผน</span>
             </div>
 
             {warnings.isAggressive && (
-              <p>
-                • แผนนี้ลดน้ำหนักเร็วกว่า 1.0% ของน้ำหนักตัว/สัปดาห์ (เสี่ยงต่อการสูญเสียมวลกล้ามเนื้อ)
+              <p className="flex items-start gap-1.5">
+                <span>•</span>
+                <span>แผนนี้ตั้งอัตราลดน้ำหนักเร็วกว่า 1.0% ของน้ำหนักตัว/สัปดาห์ เสี่ยงต่อการสูญเสียมวลกล้ามเนื้อและระบบเผาผลาญปรับตัวลงแรง</span>
               </p>
             )}
             {warnings.isNearCeiling && (
-              <p>
-                • อัตราลดน้ำหนักอยู่ใกล้เพดานความปลอดภัย (0.75% - 1.0% ของน้ำหนักตัว/สัปดาห์)
+              <p className="flex items-start gap-1.5">
+                <span>•</span>
+                <span>อัตราลดน้ำหนักอยู่ใกล้เพดานความปลอดภัย (0.75% - 1.0% ของน้ำหนักตัว/สัปดาห์)</span>
               </p>
             )}
             {warnings.isFloorHit && (
-              <p>
-                • แคลอรี่ลดแตะระดับขั้นต่ำความปลอดภัย (Floor Hit) แนะนำให้ขยายระยะเวลาแผนเพิ่มเติม
+              <p className="flex items-start gap-1.5">
+                <span>•</span>
+                <span>แคลอรี่ลดลงจนแตะระดับขั้นต่ำเพื่อความปลอดภัย (BMR Floor) แนะนำให้ขยายระยะเวลาแผนเพิ่มเติม</span>
               </p>
             )}
           </div>
@@ -255,19 +304,25 @@ export default function SetupPage() {
         {/* Account Security */}
         <AccountSection />
 
-        {/* Privacy Policy Link */}
-        <div className="text-center pt-2">
+        {/* Help & Privacy Navigation Links */}
+        <div className="flex items-center justify-center gap-6 pt-4 text-xs">
+          <Link
+            href="/help"
+            className="text-[var(--text-secondary)] hover:text-brass-400 flex items-center gap-1.5 font-medium transition-colors"
+          >
+            <Icon name="CircleHelp" size={15} />
+            <span>ศูนย์ช่วยเหลือ & คำถามที่พบบ่อย (Help Center)</span>
+          </Link>
+          <span className="text-[var(--border-color)]">|</span>
           <Link
             href="/privacy"
-            className="text-xs text-slate-500 hover:text-slate-900 dark:hover:text-white flex items-center justify-center gap-1.5"
+            className="text-[var(--text-secondary)] hover:text-brass-400 flex items-center gap-1.5 font-medium transition-colors"
           >
-            <FileText className="w-3.5 h-3.5" />
+            <Icon name="ShieldCheck" size={15} />
             <span>นโยบายความเป็นส่วนตัว (Privacy Policy)</span>
           </Link>
         </div>
       </main>
-
-      <BottomNav />
-    </div>
+    </NavLayout>
   );
 }
