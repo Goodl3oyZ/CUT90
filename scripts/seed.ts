@@ -9,7 +9,7 @@ async function main() {
 
   const now = Date.now();
   const username = 'demo';
-  const password = 'demo1234Password!';
+  const password = 'demo1234';
 
   let existingUser = await db
     .select()
