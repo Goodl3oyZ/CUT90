@@ -19,11 +19,12 @@ ENV NODE_ENV=production
 
 RUN npm run build
 
-# Bundle seed script into single CJS file for production container
-RUN npx esbuild scripts/seed.ts \
-    --bundle --platform=node --target=node20 \
-    --format=cjs --outfile=/tmp/seed.js \
-    --external:@node-rs/argon2 --external:libsql --external:@libsql/client
+# Bundle seed script — install esbuild locally then bundle
+RUN npm install --no-save esbuild && \
+    node_modules/.bin/esbuild scripts/seed.ts \
+      --bundle --platform=node --target=node20 \
+      --format=cjs --outfile=/tmp/seed.js \
+      --external:@node-rs/argon2 --external:libsql --external:@libsql/client
 
 # Stage 3: Runner
 FROM node:20-alpine AS runner
@@ -51,3 +52,4 @@ USER nextjs
 EXPOSE 3333
 
 CMD ["node", "server.js"]
+
