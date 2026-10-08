@@ -19,10 +19,11 @@ ENV NODE_ENV=production
 
 RUN npm run build
 
-# Compile seed script for use in production container
-RUN npx tsc --outDir /tmp/scripts --module commonjs --target es2020 \
-    --esModuleInterop true --resolveJsonModule true --skipLibCheck true \
-    --moduleResolution node scripts/seed.ts || true
+# Bundle seed script into single CJS file for production container
+RUN npx esbuild scripts/seed.ts \
+    --bundle --platform=node --target=node20 \
+    --format=cjs --outfile=/tmp/seed.js \
+    --external:@node-rs/argon2 --external:libsql --external:@libsql/client
 
 # Stage 3: Runner
 FROM node:20-alpine AS runner
@@ -43,7 +44,7 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/migrations ./migrations
-COPY --from=builder --chown=nextjs:nodejs /tmp/scripts ./scripts
+COPY --from=builder --chown=nextjs:nodejs /tmp/seed.js ./seed.js
 
 USER nextjs
 
