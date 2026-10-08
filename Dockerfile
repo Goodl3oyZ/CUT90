@@ -19,6 +19,11 @@ ENV NODE_ENV=production
 
 RUN npm run build
 
+# Compile seed script for use in production container
+RUN npx tsc --outDir /tmp/scripts --module commonjs --target es2020 \
+    --esModuleInterop true --resolveJsonModule true --skipLibCheck true \
+    --moduleResolution node scripts/seed.ts || true
+
 # Stage 3: Runner
 FROM node:20-alpine AS runner
 WORKDIR /app
@@ -38,6 +43,7 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/migrations ./migrations
+COPY --from=builder --chown=nextjs:nodejs /tmp/scripts ./scripts
 
 USER nextjs
 
