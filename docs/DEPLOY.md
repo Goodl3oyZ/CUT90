@@ -18,7 +18,7 @@ This guide details deploying Cut 90 Planner to a Linux VPS (Ubuntu/Debian) using
 | `SESSION_SECRET` | `secret_32_chars...` | Yes | Secret key for signing session cookies |
 | `ALLOW_SIGNUPS` | `true` | Yes | Set to `false` to close public registration |
 | `INVITE_CODE` | `club90_vip` | Optional | Mandatory code required if signups closed |
-| `PORT` | `3000` | No | Internal app port inside container |
+| `PORT` | `3333` | No | Internal app port inside container |
 
 ---
 
@@ -41,7 +41,7 @@ services:
     volumes:
       - cut90_data:/app/data
     ports:
-      - '127.0.0.1:3000:3000'
+      - '127.0.0.1:3333:3333'
 
   caddy:
     image: caddy:2-alpine
@@ -66,7 +66,7 @@ volumes:
 ### `Caddyfile`
 ```caddy
 cut90.yourdomain.com {
-    reverse_proxy app:3000
+    reverse_proxy app:3333
 
     encode gzip zstd
 
@@ -122,7 +122,7 @@ If your VPS is behind NAT or lacks a public static IPv4:
 
    ingress:
      - hostname: cut90.yourdomain.com
-       service: http://localhost:3000
+       service: http://localhost:3333
      - service: http_status:404
    ```
 4. Run `cloudflared tunnel run cut90`.
@@ -132,5 +132,5 @@ If your VPS is behind NAT or lacks a public static IPv4:
 ## 6. Troubleshooting Guide
 
 * **SQLITE_BUSY / Database Locked**: Ensure WAL mode is active (`PRAGMA journal_mode=WAL;`).
-* **502 Bad Gateway in Caddy**: Verify container port binding (`127.0.0.1:3000`).
+* **502 Bad Gateway in Caddy**: Verify container port binding (`127.0.0.1:3333`).
 * **Session Expired Instantly**: Verify server clock is synchronized via `systemd-timesyncd`.

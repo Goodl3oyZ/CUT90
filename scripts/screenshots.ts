@@ -12,7 +12,7 @@ async function generateScreenshots() {
   const context = await browser.newContext();
   const page = await context.newPage();
 
-  const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
+  const baseUrl = process.env.BASE_URL || 'http://localhost:3333';
 
   // Helper to capture light and dark at specified viewport
   async function capture(urlPath: string, name: string) {
@@ -20,7 +20,7 @@ async function generateScreenshots() {
 
     // Mobile 360px Light
     await page.setViewportSize({ width: 360, height: 780 });
-    await page.goto(fullUrl, { waitUntil: 'networkidle' }).catch(() => {});
+    await page.goto(fullUrl, { waitUntil: 'networkidle' }).catch(() => { });
     await page.evaluate(() => document.documentElement.classList.remove('dark'));
     await page.screenshot({ path: path.join(outputDir, `${name}-mobile-light.png`) });
 

@@ -50,7 +50,7 @@ npm run seed
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.  
+Open [http://localhost:3333](http://localhost:3333) in your browser.  
 Demo Credentials: **Username**: `demo` | **Password**: `demo1234Password!`
 
 ---
@@ -59,7 +59,7 @@ Demo Credentials: **Username**: `demo` | **Password**: `demo1234Password!`
 
 | Command | Action |
 | :--- | :--- |
-| `npm run dev` | Starts Next.js development server on `http://localhost:3000` |
+| `npm run dev` | Starts Next.js development server on `http://localhost:3333` |
 | `npm run build` | Builds production bundle |
 | `npm run test` | Runs Vitest unit & integration test suite (12 tests) |
 | `npm run lint` | Checks ESLint rule compliance |

@@ -37,7 +37,7 @@ jobs:
         run: npx vitest run --reporter=verbose --pool=forks --poolOptions.forks.singleFork
         env:
           SESSION_SECRET: ci-test-secret-key-for-sessions-1234567890
-          ALLOWED_ORIGINS: http://localhost:3000
+          ALLOWED_ORIGINS: http://localhost:3333
 
   # ─────────────────────────────────────────────
   # Job 2: Production Build
@@ -64,7 +64,7 @@ jobs:
         run: npm run build
         env:
           SESSION_SECRET: ci-build-secret-key-for-sessions-1234567890
-          ALLOWED_ORIGINS: http://localhost:3000
+          ALLOWED_ORIGINS: http://localhost:3333
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
