@@ -47,6 +47,11 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/migrations ./migrations
 COPY --from=builder --chown=nextjs:nodejs /tmp/seed.js ./seed.js
 
+# Native binaries that standalone/NFT misses — needed by seed.js
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@libsql ./node_modules/@libsql
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/libsql ./node_modules/libsql
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@node-rs ./node_modules/@node-rs
+
 USER nextjs
 
 EXPOSE 3333
